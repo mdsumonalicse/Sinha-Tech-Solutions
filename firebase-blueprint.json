@@ -1,0 +1,99 @@
+{
+  "entities": {
+    "Product": {
+      "title": "Product",
+      "description": "Software or digital service product",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "price": { "type": "number" },
+        "oldPrice": { "type": "number" },
+        "category": { "type": "string" },
+        "image": { "type": "string" },
+        "badge": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "price", "category", "image"]
+    },
+    "Category": {
+      "title": "Category",
+      "description": "Product category",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "icon": { "type": "string" }
+      },
+      "required": ["name", "icon"]
+    },
+    "Settings": {
+      "title": "Site Settings",
+      "description": "Global website configuration",
+      "type": "object",
+      "properties": {
+        "siteName": { "type": "string" },
+        "phone": { "type": "string" },
+        "email": { "type": "string" },
+        "facebook": { "type": "string" },
+        "instagram": { "type": "string" },
+        "twitter": { "type": "string" },
+        "tiktok": { "type": "string" },
+        "youtube": { "type": "string" },
+        "footerText": { "type": "string" },
+        "banners": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "Request": {
+      "title": "Product Request",
+      "description": "User request for a custom product",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "productName": { "type": "string" },
+        "details": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "contacted", "fulfilled", "cancelled"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    }
+  },
+  "firestore": {
+    "products": {
+      "schema": "Product",
+      "description": "Store all digital products"
+    },
+    "categories": {
+      "schema": "Category",
+      "description": "Store all product categories"
+    },
+    "settings": {
+      "schema": "Settings",
+      "description": "Global site settings (usually a single document 'global')"
+    },
+    "requests": {
+      "schema": "Request",
+      "description": "User product requests"
+    },
+    "users": {
+      "schema": {
+        "type": "object",
+        "properties": {
+          "uid": { "type": "string" },
+          "email": { "type": "string" },
+          "displayName": { "type": "string" },
+          "photoURL": { "type": "string" },
+          "role": { "type": "string", "enum": ["user", "admin"] },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "description": "Platform users and their roles"
+    }
+  }
+}

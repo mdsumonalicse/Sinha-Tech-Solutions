@@ -1,0 +1,102 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Phase 3: Primitives
+    function isSignedIn() { return request.auth != null; }
+    function isAdmin() { 
+      return isSignedIn() && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'; 
+    }
+    function isVerified() { return request.auth.token.email_verified == true; }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+
+    // Entity Validations
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'email', 'role']) &&
+             data.uid is string &&
+             data.email is string &&
+             data.role in ['user', 'admin'];
+    }
+
+    function isValidProduct(data) {
+      return data.keys().hasAll(['name', 'price', 'category', 'image']) &&
+             data.name is string && data.name.size() <= 200 &&
+             data.price is number && data.price >= 0 &&
+             data.category is string &&
+             data.image is string && data.image.size() <= 1000;
+    }
+
+    function isValidCategory(data) {
+      return data.keys().hasAll(['name', 'icon']) &&
+             data.name is string && data.name.size() <= 100 &&
+             data.icon is string && data.icon.size() <= 100;
+    }
+
+    function isValidRequest(data) {
+      return data.keys().hasAll(['name', 'email', 'phone', 'productName']) &&
+             data.name is string && data.name.size() <= 100 &&
+             data.email is string && data.email.size() <= 200 &&
+             data.phone is string && data.phone.size() <= 20 &&
+             data.productName is string && data.productName.size() <= 200;
+    }
+
+    // 1. Users Collection
+    match /users/{userId} {
+      allow read: if isAdmin() || (isSignedIn() && request.auth.uid == userId);
+      allow create: if isSignedIn() && request.auth.uid == userId && incoming().role == 'user';
+      allow update: if isAdmin() || (isSignedIn() && request.auth.uid == userId && !incoming().diff(existing()).affectedKeys().hasAny(['role']));
+      allow delete: if isAdmin();
+    }
+
+    // 1.1 Legacy Admins Collection (Optional)
+    match /admins/{userId} {
+      allow read: if isSignedIn();
+      allow write: if false; 
+    }
+
+    // 2. Products Collection
+    match /products/{productId} {
+      allow read: if true;
+      allow create: if isAdmin() && isValidProduct(incoming());
+      allow update: if isAdmin() && isValidProduct(incoming());
+      allow delete: if isAdmin();
+    }
+
+    // 3. Categories Collection
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow create: if isAdmin() && isValidCategory(incoming());
+      allow update: if isAdmin() && isValidCategory(incoming());
+      allow delete: if isAdmin();
+    }
+
+    // 4. Orders Collection
+    match /orders/{orderId} {
+      allow read: if isAdmin();
+      allow create: if true; // Allow customers to create orders
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // 5. Settings Collection
+    match /settings/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // 5. Requests Collection
+    match /requests/{requestId} {
+      allow read: if isAdmin();
+      allow create: if isValidRequest(incoming()) && incoming().createdAt == request.time;
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+  }
+}
