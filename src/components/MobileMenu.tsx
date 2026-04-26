@@ -2,6 +2,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, LayoutGrid, Package, ChevronRight } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface MobileMenuProps {
   isOpen: boolean;
@@ -66,7 +67,7 @@ export default function MobileMenu({ isOpen, onClose, categories, activeCategory
                   <ChevronRight size={16} className={activeCategory === 'all' ? 'opacity-100' : 'opacity-0'} />
                 </button>
 
-                {categories.map((cat) => {
+                {categories.filter(c => c.id !== 'prompts' && c.name !== 'AI Prompts').map((cat) => {
                   // @ts-ignore
                   const Icon = LucideIcons[cat.icon] || LucideIcons.Package;
                   const isActive = activeCategory === cat.name;
@@ -91,6 +92,23 @@ export default function MobileMenu({ isOpen, onClose, categories, activeCategory
                     </button>
                   );
                 })}
+
+                <div className="pt-4 mt-4 border-t border-gray-100">
+                  <Link 
+                    to="/prompts"
+                    onClick={onClose}
+                    className="w-full p-4 rounded-2xl flex items-center gap-4 bg-purple-50 text-purple-600 border border-purple-100"
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-purple-600 shadow-sm">
+                      <LucideIcons.Terminal size={20} />
+                    </div>
+                    <div className="flex flex-col flex-1">
+                      <span className="font-black text-xs uppercase tracking-widest text-left">AI Prompts</span>
+                      <span className="text-[10px] text-purple-400 font-bold uppercase tracking-tight text-left">Free Library</span>
+                    </div>
+                    <ChevronRight size={16} />
+                  </Link>
+                </div>
               </div>
             </div>
 

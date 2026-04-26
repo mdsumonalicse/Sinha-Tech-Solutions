@@ -61,6 +61,12 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
+                <Link to="/prompts" className="hover:text-brand-primary transition-colors flex items-center gap-2 group text-purple-400">
+                  <ChevronRight size={12} className="group-hover:translate-x-1 transition-transform" />
+                  AI Prompt Library
+                </Link>
+              </li>
+              <li>
                 <Link to="/admin" className="hover:text-brand-primary transition-colors flex items-center gap-2 group">
                   <ChevronRight size={12} className="group-hover:translate-x-1 transition-transform" />
                   Admin Portal

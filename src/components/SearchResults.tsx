@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import { PRODUCTS, CATEGORIES } from '../constants';
 import ProductCard from './ProductCard';
 import { Filter, SlidersHorizontal, ArrowUpDown, ChevronDown, LayoutGrid, List, Search } from 'lucide-react';
@@ -13,6 +13,8 @@ export default function SearchResults({ products = [] }: { products?: any[] }) {
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 100000]);
   const [sortBy, setSortBy] = useState<'default' | 'price-low' | 'price-high' | 'name'>('default');
   const [isFilterOpen, setIsFilterOpen] = useState(true);
+
+  const navigate = useNavigate();
 
   const filteredProducts = useMemo(() => {
     const source = products.length > 0 ? products : PRODUCTS;
@@ -95,7 +97,7 @@ export default function SearchResults({ products = [] }: { products?: any[] }) {
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
                 const val = (e.target as HTMLInputElement).value;
-                window.location.href = `/search?q=${encodeURIComponent(val)}`;
+                navigate(`/search?q=${encodeURIComponent(val)}`);
               }
             }}
             placeholder="Search within these results..."

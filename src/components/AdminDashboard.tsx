@@ -29,7 +29,9 @@ import {
   Globe,
   Phone,
   Mail,
-  CreditCard
+  CreditCard,
+  Terminal,
+  Sparkles
 } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
 import { auth, db } from '../lib/firebase';
@@ -45,6 +47,7 @@ import {
   onSnapshot, 
   query, 
   orderBy,
+  where,
   serverTimestamp,
   setDoc,
   getDoc
@@ -96,6 +99,9 @@ interface Product {
   image: string;
   badge?: string;
   gallery?: string[];
+  type?: 'buy' | 'download' | 'prompt';
+  prompt?: string;
+  downloadUrl?: string;
 }
 
 interface SiteSettings {
@@ -143,7 +149,9 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+  const [isPromptModalOpen, setIsPromptModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>(null);
+  const [editingPrompt, setEditingPrompt] = useState<any>(null);
   const [selectedRequest, setSelectedRequest] = useState<UserRequest | null>(null);
   const navigate = useNavigate();
 
@@ -193,6 +201,7 @@ export default function AdminDashboard() {
   const menuItems = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
     { id: 'products', label: 'Products', icon: Package },
+    { id: 'prompts', label: 'Manage Prompts', icon: Terminal },
     { id: 'orders', label: 'Orders', icon: ShoppingBag },
     { id: 'categories', label: 'Categories', icon: LayoutGrid },
     { id: 'requests', label: 'Requests', icon: MessageSquare },
@@ -338,6 +347,15 @@ export default function AdminDashboard() {
                   New Product
                 </button>
               )}
+              {activeTab === 'prompts' && (
+                <button 
+                  onClick={() => setIsPromptModalOpen(true)}
+                  className="flex-1 sm:flex-none px-6 sm:px-8 py-3 sm:py-4 bg-purple-600 text-white rounded-xl sm:rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-2xl shadow-purple-200 flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-95 transition-all"
+                >
+                  <Plus size={16} />
+                  New AI Prompt
+                </button>
+              )}
             </div>
           </div>
         </header>
@@ -350,6 +368,14 @@ export default function AdminDashboard() {
               onEdit={(product) => {
                 setEditingProduct(product);
                 setIsProductModalOpen(true);
+              }} 
+            />
+          )}
+          {activeTab === 'prompts' && (
+            <PromptsTab 
+              onEdit={(prompt) => {
+                setEditingPrompt(prompt);
+                setIsPromptModalOpen(true);
               }} 
             />
           )}
@@ -369,6 +395,14 @@ export default function AdminDashboard() {
           setEditingProduct(null);
         }}
         editingProduct={editingProduct}
+      />
+      <PromptModal 
+        isOpen={isPromptModalOpen} 
+        onClose={() => {
+          setIsPromptModalOpen(false);
+          setEditingPrompt(null);
+        }}
+        editingPrompt={editingPrompt}
       />
       <RequestModal 
         isOpen={!!selectedRequest} 
@@ -591,7 +625,9 @@ function ProductsTab({ onEdit }: { onEdit: (product: Product) => void }) {
   useEffect(() => {
     const q = query(collection(db, 'products'));
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const prods = snapshot.docs.map(doc => ({ docId: doc.id, ...doc.data() } as any));
+      const prods = snapshot.docs
+        .map(doc => ({ docId: doc.id, ...doc.data() } as any))
+        .filter((p: any) => p.type !== 'prompt');
       setProducts(prods);
       setLoading(false);
     });
@@ -903,43 +939,69 @@ function CategoriesTab() {
         </form>
       </div>
 
-      <div className="bg-white rounded-[3rem] border border-gray-50 shadow-sm overflow-hidden">
-        <table className="w-full text-left">
-          <thead>
-            <tr className="border-b border-gray-50">
-              <th className="p-8 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Category</th>
-              <th className="p-8 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Identifier</th>
-              <th className="p-8 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Icon</th>
-              <th className="p-8 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-50">
-            {categories.map((cat) => (
-              <tr key={cat.docId} className="hover:bg-gray-50/50 transition-colors">
-                <td className="p-8">
-                  <span className="text-sm font-black text-gray-900 uppercase tracking-tighter">{cat.name}</span>
-                </td>
-                <td className="p-8">
-                  <span className="text-[10px] font-bold text-gray-400 uppercase">{cat.id}</span>
-                </td>
-                <td className="p-8">
-                  <div className="flex items-center gap-2">
-                    <div className="p-2 bg-gray-50 rounded-lg text-gray-400">
-                      <LayoutGrid size={14} />
-                    </div>
-                    <span className="text-[10px] font-bold text-gray-400">{cat.icon}</span>
+      <div className="bg-white rounded-[2rem] lg:rounded-[3rem] border border-gray-50 shadow-sm overflow-hidden">
+        {/* Mobile List View */}
+        <div className="lg:hidden divide-y divide-gray-50">
+          {categories.map((cat) => (
+            <div key={cat.docId} className="p-4 sm:p-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 bg-gray-50 rounded-xl text-gray-400">
+                    <LayoutGrid size={18} />
                   </div>
-                </td>
-                <td className="p-8">
-                  <div className="flex gap-2">
-                    <button onClick={() => handleEdit(cat)} className="p-3 bg-gray-50 hover:bg-gray-900 hover:text-white rounded-xl transition-all"><Edit2 size={14} /></button>
-                    <button onClick={() => handleDelete(cat.docId)} className="p-3 bg-gray-50 hover:bg-red-500 hover:text-white rounded-xl transition-all"><Trash2 size={14} /></button>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-black text-gray-900 uppercase tracking-tighter">{cat.name}</span>
+                    <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{cat.id}</span>
                   </div>
-                </td>
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={() => handleEdit(cat)} className="p-3 bg-gray-50 hover:bg-gray-900 hover:text-white rounded-xl transition-all"><Edit2 size={14} /></button>
+                  <button onClick={() => handleDelete(cat.docId)} className="p-3 bg-gray-50 hover:bg-red-500 hover:text-white rounded-xl transition-all"><Trash2 size={14} /></button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Desktop Table View */}
+        <div className="hidden lg:block overflow-x-auto">
+          <table className="w-full text-left">
+            <thead>
+              <tr className="border-b border-gray-50">
+                <th className="p-8 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Category</th>
+                <th className="p-8 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Identifier</th>
+                <th className="p-8 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Icon</th>
+                <th className="p-8 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {categories.map((cat) => (
+                <tr key={cat.docId} className="hover:bg-gray-50/50 transition-colors">
+                  <td className="p-8">
+                    <span className="text-sm font-black text-gray-900 uppercase tracking-tighter">{cat.name}</span>
+                  </td>
+                  <td className="p-8">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase">{cat.id}</span>
+                  </td>
+                  <td className="p-8">
+                    <div className="flex items-center gap-2">
+                      <div className="p-2 bg-gray-50 rounded-lg text-gray-400">
+                        <LayoutGrid size={14} />
+                      </div>
+                      <span className="text-[10px] font-bold text-gray-400">{cat.icon}</span>
+                    </div>
+                  </td>
+                  <td className="p-8">
+                    <div className="flex gap-2">
+                      <button onClick={() => handleEdit(cat)} className="p-3 bg-gray-50 hover:bg-gray-900 hover:text-white rounded-xl transition-all"><Edit2 size={14} /></button>
+                      <button onClick={() => handleDelete(cat.docId)} className="p-3 bg-gray-50 hover:bg-red-500 hover:text-white rounded-xl transition-all"><Trash2 size={14} /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <CategoryModal 
@@ -1635,7 +1697,10 @@ function ProductModal({ isOpen, onClose, editingProduct }: { isOpen: boolean, on
     category: '',
     image: '',
     badge: '',
-    gallery: ['', '', '']
+    gallery: ['', '', ''],
+    type: 'buy',
+    prompt: '',
+    downloadUrl: ''
   });
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -1652,7 +1717,10 @@ function ProductModal({ isOpen, onClose, editingProduct }: { isOpen: boolean, on
     if (editingProduct) {
       setFormData({
         ...editingProduct,
-        gallery: editingProduct.gallery || ['', '', '']
+        gallery: editingProduct.gallery || ['', '', ''],
+        type: editingProduct.type || 'buy',
+        prompt: editingProduct.prompt || '',
+        downloadUrl: editingProduct.downloadUrl || ''
       });
     } else {
       setFormData({ 
@@ -1663,7 +1731,10 @@ function ProductModal({ isOpen, onClose, editingProduct }: { isOpen: boolean, on
         category: '', 
         image: '', 
         badge: '',
-        gallery: ['', '', '']
+        gallery: ['', '', ''],
+        type: 'buy',
+        prompt: '',
+        downloadUrl: ''
       });
     }
   }, [editingProduct]);
@@ -1737,6 +1808,44 @@ function ProductModal({ isOpen, onClose, editingProduct }: { isOpen: boolean, on
                     </div>
                     
                     <div className="space-y-1.5">
+                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-2">Asset Type</label>
+                      <select 
+                        required 
+                        value={formData.type} 
+                        onChange={(e) => setFormData({...formData, type: e.target.value as any})} 
+                        className="w-full bg-gray-50 border-none rounded-2xl py-5 px-8 text-xs font-black uppercase outline-none focus:ring-2 focus:ring-brand-primary/10 transition-all appearance-none cursor-pointer"
+                      >
+                        <option value="buy">Buy License</option>
+                        <option value="download">Direct Download</option>
+                      </select>
+                    </div>
+
+                    {formData.type === 'prompt' && (
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-2">AI Prompt Content</label>
+                        <textarea 
+                          rows={3} 
+                          value={formData.prompt} 
+                          onChange={(e) => setFormData({...formData, prompt: e.target.value})} 
+                          placeholder="Paste AI prompt here..." 
+                          className="w-full bg-gray-50 border-none rounded-2xl py-5 px-8 text-xs font-bold transition-all outline-none focus:ring-2 focus:ring-brand-primary/10 resize-none" 
+                        />
+                      </div>
+                    )}
+
+                    {formData.type === 'download' && (
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-2">Download URL</label>
+                        <input 
+                          value={formData.downloadUrl} 
+                          onChange={(e) => setFormData({...formData, downloadUrl: e.target.value})} 
+                          placeholder="https://..." 
+                          className="w-full bg-gray-50 border-none rounded-2xl py-5 px-8 text-xs font-black outline-none focus:ring-2 focus:ring-brand-primary/10 transition-all" 
+                        />
+                      </div>
+                    )}
+
+                    <div className="space-y-1.5">
                       <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-2">Category Selection</label>
                       <select 
                         required 
@@ -1751,16 +1860,25 @@ function ProductModal({ isOpen, onClose, editingProduct }: { isOpen: boolean, on
                       </select>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-2">Sale Price (৳)</label>
-                        <input required type="number" value={formData.price} onChange={(e) => setFormData({...formData, price: Number(e.target.value)})} className="w-full bg-gray-50 border-none rounded-2xl py-5 px-8 text-xs font-black outline-none focus:ring-2 focus:ring-brand-primary/10 transition-all" />
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-2">Regular Price</label>
-                        <input type="number" value={formData.oldPrice} onChange={(e) => setFormData({...formData, oldPrice: Number(e.target.value)})} className="w-full bg-gray-50 border-none rounded-2xl py-5 px-8 text-xs font-black outline-none focus:ring-2 focus:ring-brand-primary/10 transition-all" />
-                      </div>
-                    </div>
+                    {formData.type !== 'prompt' && (
+                      <>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-2">Sale Price (৳)</label>
+                            <input required type="number" value={formData.price} onChange={(e) => setFormData({...formData, price: Number(e.target.value)})} className="w-full bg-gray-50 border-none rounded-2xl py-5 px-8 text-xs font-black outline-none focus:ring-2 focus:ring-brand-primary/10 transition-all" />
+                          </div>
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-2">Regular Price</label>
+                            <input type="number" value={formData.oldPrice} onChange={(e) => setFormData({...formData, oldPrice: Number(e.target.value)})} className="w-full bg-gray-50 border-none rounded-2xl py-5 px-8 text-xs font-black outline-none focus:ring-2 focus:ring-brand-primary/10 transition-all" />
+                          </div>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-2">Promotion Badge (Optional)</label>
+                          <input value={formData.badge} onChange={(e) => setFormData({...formData, badge: e.target.value})} placeholder="e.g. POPULAR, -50% OFF" className="w-full bg-gray-50 border-none rounded-2xl py-5 px-8 text-xs font-black uppercase outline-none focus:ring-2 focus:ring-brand-primary/10 transition-all" />
+                        </div>
+                      </>
+                    )}
 
                     <div className="space-y-1.5">
                       <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-2">Main Image (Primary)</label>
@@ -1800,6 +1918,191 @@ function ProductModal({ isOpen, onClose, editingProduct }: { isOpen: boolean, on
                     {loading ? <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" /> : <>{editingProduct ? 'Update System' : 'Deploy License'} <Save size={20} /></>}
                   </button>
                 </div>
+              </form>
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+function PromptsTab({ onEdit }: { onEdit: (prompt: any) => void }) {
+  const [prompts, setPrompts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const q = query(collection(db, 'products'), where('type', '==', 'prompt'));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const data = snapshot.docs.map(doc => ({ docId: doc.id, ...doc.data() }));
+      setPrompts(data);
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const handleDelete = async (id: string) => {
+    if (confirm('Delete this AI Prompt permanently?')) {
+      try {
+        await deleteDoc(doc(db, 'products', id));
+      } catch (error) {
+        handleFirestoreError(error, OperationType.DELETE, `products/${id}`);
+      }
+    }
+  };
+
+  if (loading) return (
+    <div className="p-20 flex justify-center">
+      <div className="w-10 h-10 border-4 border-purple-500 border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
+
+  return (
+    <div className="bg-white rounded-[2rem] lg:rounded-[3rem] border border-gray-50 shadow-sm overflow-hidden">
+      <div className="hidden lg:block overflow-x-auto">
+        <table className="w-full text-left">
+          <thead>
+            <tr className="border-b border-gray-50">
+              <th className="p-8 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Prompt Image</th>
+              <th className="p-8 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Name</th>
+              <th className="p-8 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Prompt content</th>
+              <th className="p-8 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-50">
+            {prompts.map((p: any) => (
+              <tr key={p.docId} className="hover:bg-gray-50/50 transition-colors">
+                <td className="p-8">
+                  <img src={p.image} className="w-16 h-12 object-cover rounded-xl" alt="" />
+                </td>
+                <td className="p-8">
+                  <span className="text-xs font-black text-gray-900 uppercase tracking-tighter">{p.name}</span>
+                </td>
+                <td className="p-8">
+                  <p className="text-[10px] font-bold text-gray-400 uppercase line-clamp-2 max-w-xs">{p.prompt}</p>
+                </td>
+                <td className="p-8">
+                  <div className="flex gap-2">
+                    <button onClick={() => onEdit(p)} className="p-3 bg-gray-50 hover:bg-purple-600 hover:text-white rounded-xl transition-all"><Edit2 size={14} /></button>
+                    <button onClick={() => handleDelete(p.docId)} className="p-3 bg-gray-50 hover:bg-red-500 hover:text-white rounded-xl transition-all"><Trash2 size={14} /></button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      
+      {/* Mobile view */}
+      <div className="lg:hidden divide-y divide-gray-50">
+        {prompts.map((p: any) => (
+          <div key={p.docId} className="p-6">
+            <div className="flex items-center gap-4 mb-4">
+              <img src={p.image} className="w-12 h-12 object-cover rounded-xl" alt="" />
+              <div className="flex flex-col">
+                <span className="text-xs font-black text-gray-900 uppercase">{p.name}</span>
+                <span className="text-[10px] text-gray-400 font-bold uppercase truncate max-w-[150px]">{p.prompt}</span>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={() => onEdit(p)} className="flex-1 py-3 bg-gray-50 text-[10px] font-black uppercase text-purple-600 rounded-xl">Edit</button>
+              <button onClick={() => handleDelete(p.docId)} className="flex-1 py-3 bg-gray-50 text-[10px] font-black uppercase text-red-500 rounded-xl">Delete</button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function PromptModal({ isOpen, onClose, editingPrompt }: { isOpen: boolean, onClose: () => void, editingPrompt: any }) {
+  const [formData, setFormData] = useState({
+    name: '',
+    image: '',
+    prompt: '',
+    category: 'AI Prompts'
+  });
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (editingPrompt) {
+      setFormData({
+        name: editingPrompt.name || '',
+        image: editingPrompt.image || '',
+        prompt: editingPrompt.prompt || '',
+        category: editingPrompt.category || 'AI Prompts'
+      });
+    } else {
+      setFormData({
+        name: '',
+        image: '',
+        prompt: '',
+        category: 'AI Prompts'
+      });
+    }
+  }, [editingPrompt]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const data = {
+        ...formData,
+        type: 'prompt',
+        price: 0,
+        updatedAt: serverTimestamp(),
+      };
+
+      if (editingPrompt) {
+        await updateDoc(doc(db, 'products', editingPrompt.docId), data);
+      } else {
+        await addDoc(collection(db, 'products'), {
+          ...data,
+          createdAt: serverTimestamp()
+        });
+      }
+      onClose();
+    } catch (error: any) {
+      handleFirestoreError(error, editingPrompt ? OperationType.UPDATE : OperationType.CREATE, 'products');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="fixed inset-0 bg-black/80 backdrop-blur-md" />
+          <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-white w-full max-w-xl rounded-[2.5rem] overflow-hidden relative z-10">
+            <div className="p-8">
+              <div className="flex justify-between items-center mb-8">
+                <div>
+                  <h3 className="text-2xl font-black text-gray-900 uppercase tracking-tighter">{editingPrompt ? 'Edit' : 'Add'} AI Prompt</h3>
+                  <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Prompt Library Management</p>
+                </div>
+                <button onClick={onClose} className="p-3 bg-gray-50 rounded-2xl text-gray-400 hover:text-gray-900 transition-all"><X size={20} /></button>
+              </div>
+
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-2">Prompt Name / Idea</label>
+                  <input required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} placeholder="E.G. CYBERPUNK CITYSCAPE" className="w-full bg-gray-50 border-none rounded-2xl py-5 px-8 text-xs font-black outline-none focus:ring-2 focus:ring-purple-500/10 transition-all" />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-2">Image Reference URL</label>
+                  <input required value={formData.image} onChange={(e) => setFormData({...formData, image: e.target.value})} placeholder="HTTPS://IMAGE-LINK.PNG" className="w-full bg-gray-50 border-none rounded-2xl py-5 px-8 text-xs font-black outline-none focus:ring-2 focus:ring-purple-500/10 transition-all" />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-2">The Prompt</label>
+                  <textarea required rows={6} value={formData.prompt} onChange={(e) => setFormData({...formData, prompt: e.target.value})} placeholder="PASTE SYSTEM PROMPT HERE..." className="w-full bg-gray-50 border-none rounded-2xl py-5 px-8 text-xs font-bold transition-all outline-none focus:ring-2 focus:ring-purple-500/10 resize-none uppercase" />
+                </div>
+
+                <button type="submit" disabled={loading} className="w-full py-6 bg-purple-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all">
+                  {loading ? 'Processing...' : (editingPrompt ? 'Update Prompt' : 'Create Prompt')}
+                </button>
               </form>
             </div>
           </motion.div>

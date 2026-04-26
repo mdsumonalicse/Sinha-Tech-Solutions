@@ -10,6 +10,7 @@ import ProductDetail from './components/ProductDetail';
 import SearchResults from './components/SearchResults';
 import AdminDashboard from './components/AdminDashboard';
 import Hero from './components/Hero';
+import PromptsPage from './components/PromptsPage';
 import { AuthProvider } from './lib/AuthContext';
 import { PRODUCTS, CATEGORIES } from './constants';
 import * as LucideIcons from 'lucide-react';
@@ -20,9 +21,10 @@ import { db } from './lib/firebase';
 import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
 
 function Home({ activeCategory, setActiveCategory, categories, products, loading }: any) {
-  const filteredProducts = activeCategory === 'all' 
+  const filteredProducts = (activeCategory === 'all' 
     ? (products.length > 0 ? products : PRODUCTS)
-    : products.filter((p: any) => p.category && p.category.toLowerCase() === activeCategory.toLowerCase());
+    : products.filter((p: any) => p.category && p.category.toLowerCase() === activeCategory.toLowerCase())
+  ).filter((p: any) => p.type !== 'prompt');
 
   const currentCategories = categories.length > 0 ? categories : CATEGORIES;
 
@@ -222,6 +224,7 @@ export default function App() {
                   />
                 } />
                 <Route path="/product/:productId" element={<ProductDetail />} />
+                <Route path="/prompts" element={<PromptsPage />} />
                 <Route path="/search" element={<SearchResults products={products} />} />
                 <Route 
                   path="/admin" 

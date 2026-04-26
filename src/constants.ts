@@ -7,6 +7,9 @@ export interface Product {
   category: string;
   image: string;
   badge?: string;
+  type?: 'buy' | 'download' | 'prompt';
+  prompt?: string;
+  downloadUrl?: string;
 }
 
 export interface Category {
@@ -22,6 +25,7 @@ export const CATEGORIES: Category[] = [
   { id: 'office', name: 'Microsoft Office', icon: 'FileText' },
   { id: 'streaming', name: 'OTT Subscriptions', icon: 'Tv' },
   { id: 'design', name: 'Designing Tools', icon: 'Palette' },
+  { id: 'prompts', name: 'AI Prompts', icon: 'Terminal' },
 ];
 
 export const PRODUCTS: Product[] = [

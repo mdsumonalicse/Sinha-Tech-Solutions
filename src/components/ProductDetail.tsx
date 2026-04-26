@@ -1,7 +1,7 @@
 import { useParams, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { db } from '../lib/firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, limit, getDocs } from 'firebase/firestore';
 import { motion } from 'motion/react';
 import { 
   ShoppingCart, 
@@ -12,27 +12,78 @@ import {
   Star, 
   CheckCircle2,
   Image as ImageIcon,
-  CreditCard
+  CreditCard,
+  Copy,
+  Download,
+  Terminal,
+  Share2,
+  Sparkles
 } from 'lucide-react';
 import OrderModal from './OrderModal';
+import ProductCard from './ProductCard';
 
 export default function ProductDetail() {
   const { productId } = useParams();
   const [product, setProduct] = useState<any>(null);
+  const [recommendedItems, setRecommendedItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [shared, setShared] = useState(false);
+
+  const copyPrompt = () => {
+    if (product?.prompt) {
+      navigator.clipboard.writeText(product.prompt);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const shareProduct = () => {
+    const url = window.location.href;
+    navigator.clipboard.writeText(url);
+    setShared(true);
+    setTimeout(() => setShared(false), 2000);
+    
+    // Use native share if available
+    if (navigator.share) {
+      navigator.share({
+        title: product.name,
+        text: `Check out ${product.name} on Sinha Tech Solutions`,
+        url: url,
+      }).catch(console.error);
+    }
+  };
 
   useEffect(() => {
-    const fetchProduct = async () => {
+    const fetchProductAndRecommended = async () => {
       if (!productId) return;
       try {
+        setLoading(true);
         const docRef = doc(db, 'products', productId);
         const docSnap = await getDoc(docRef);
+        
         if (docSnap.exists()) {
           const data = docSnap.data();
-          setProduct({ id: docSnap.id, ...data });
+          const currentProduct = { id: docSnap.id, ...data };
+          setProduct(currentProduct);
           setSelectedImage(data.image);
+
+          // Fetch recommended items from same category
+          if (data.category) {
+            const q = query(
+              collection(db, 'products'),
+              where('category', '==', data.category),
+              limit(5)
+            );
+            const querySnapshot = await getDocs(q);
+            const recommended = querySnapshot.docs
+              .map(doc => ({ id: doc.id, ...doc.data() }))
+              .filter(item => item.id !== productId)
+              .slice(0, 4);
+            setRecommendedItems(recommended);
+          }
         }
       } catch (error) {
         console.error("Error fetching product:", error);
@@ -40,7 +91,8 @@ export default function ProductDetail() {
         setLoading(false);
       }
     };
-    fetchProduct();
+    fetchProductAndRecommended();
+    window.scrollTo(0, 0);
   }, [productId]);
 
   if (loading) {
@@ -73,11 +125,22 @@ export default function ProductDetail() {
 
   return (
     <div className="max-w-7xl mx-auto py-0 lg:py-8 px-0 lg:px-8">
-      <div className="px-4 py-6 lg:px-0 lg:py-0">
-        <Link to="/" className="inline-flex items-center gap-2 text-gray-500 hover:text-brand-primary transition-colors mb-4 lg:mb-8 font-black text-[10px] uppercase tracking-[0.2em]">
+      <div className="px-4 py-6 lg:px-0 lg:py-0 flex items-center justify-between">
+        <Link to="/" className="inline-flex items-center gap-2 text-gray-500 hover:text-brand-primary transition-colors font-black text-[10px] uppercase tracking-[0.2em]">
           <ArrowLeft size={16} />
           Back to Store
         </Link>
+        <button 
+          onClick={shareProduct}
+          className={`inline-flex items-center gap-2 px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] transition-all shadow-sm ${shared ? 'bg-emerald-500 text-white' : 'bg-white text-gray-400 hover:text-gray-900 border border-gray-100'}`}
+        >
+          {shared ? (
+            <CheckCircle2 size={16} />
+          ) : (
+            <Share2 size={16} />
+          )}
+          {shared ? 'Link Copied' : 'Share Product'}
+        </button>
       </div>
 
       <div className="bg-white rounded-none lg:rounded-[3rem] border-0 lg:border lg:border-gray-100 p-0 lg:p-16 shadow-none lg:shadow-sm overflow-hidden">
@@ -144,12 +207,14 @@ export default function ProductDetail() {
               <span className="text-[9px] lg:text-[10px] font-black text-gray-400 uppercase tracking-widest">Verified Assets</span>
             </div>
 
-            <div className="flex items-center gap-4 mb-8 lg:mb-10">
-              <span className="text-3xl lg:text-5xl font-black text-brand-primary tracking-tighter">৳{product.price.toLocaleString()}</span>
-              {product.oldPrice && (
-                <span className="text-lg lg:text-2xl text-gray-300 line-through font-bold">৳{product.oldPrice.toLocaleString()}</span>
-              )}
-            </div>
+            {product.type !== 'prompt' && (
+              <div className="flex items-center gap-4 mb-8 lg:mb-10">
+                <span className="text-3xl lg:text-5xl font-black text-brand-primary tracking-tighter">৳{product.price.toLocaleString()}</span>
+                {product.oldPrice && (
+                  <span className="text-lg lg:text-2xl text-gray-300 line-through font-bold">৳{product.oldPrice.toLocaleString()}</span>
+                )}
+              </div>
+            )}
 
             <p className="text-gray-500 font-bold text-xs lg:text-sm uppercase tracking-tight leading-relaxed mb-8 lg:mb-12 border-l-4 border-brand-primary/20 pl-4 lg:pl-6">
               {product.description}
@@ -169,21 +234,74 @@ export default function ProductDetail() {
               </div>
             </div>
 
+            {product.type === 'prompt' && (
+              <div className="mb-8 lg:mb-12">
+                 <h3 className="text-[10px] font-black text-gray-900 uppercase tracking-widest mb-4 flex items-center gap-2">
+                   <Terminal size={14} className="text-brand-primary" />
+                   AI Generation Prompt
+                 </h3>
+                 <div className="bg-gray-50 rounded-2xl p-6 relative group overflow-hidden border border-gray-100">
+                    <pre className="text-xs font-bold text-gray-600 uppercase whitespace-pre-wrap leading-relaxed">
+                       {product.prompt}
+                    </pre>
+                    <button 
+                      onClick={copyPrompt}
+                      className="absolute top-4 right-4 p-2 bg-white rounded-lg shadow-sm hover:scale-110 transition-all text-brand-primary"
+                    >
+                       {copied ? <CheckCircle2 size={16} /> : <Copy size={16} />}
+                    </button>
+                    {copied && (
+                      <div className="absolute inset-0 bg-brand-primary/5 backdrop-blur-[2px] flex items-center justify-center animate-in fade-in zoom-in duration-300">
+                         <span className="text-[10px] font-black text-brand-primary uppercase tracking-[0.2em]">Prompt Copied!</span>
+                      </div>
+                    )}
+                 </div>
+              </div>
+            )}
+
             <div className="flex flex-col gap-3 lg:gap-4 mt-auto">
+              {product.type === 'prompt' ? (
+                <button 
+                  onClick={copyPrompt}
+                  className="w-full bg-brand-primary text-white h-14 lg:h-16 rounded-xl lg:rounded-2xl font-black text-[10px] lg:text-xs uppercase tracking-[0.2em] shadow-xl shadow-brand-primary/20 hover:bg-opacity-90 hover:scale-[1.01] active:scale-95 transition-all flex items-center justify-center gap-3"
+                >
+                  {copied ? 'Copied to Matrix' : 'Copy AI Prompt'} <Copy size={18} className="hidden sm:block" />
+                </button>
+              ) : product.type === 'download' ? (
+                <a 
+                  href={product.downloadUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="w-full bg-emerald-500 text-white h-14 lg:h-16 rounded-xl lg:rounded-2xl font-black text-[10px] lg:text-xs uppercase tracking-[0.2em] shadow-xl shadow-emerald-100 hover:bg-emerald-600 hover:scale-[1.01] active:scale-95 transition-all flex items-center justify-center gap-3"
+                >
+                  Download Asset <Download size={18} className="hidden sm:block" />
+                </a>
+              ) : (
+                <>
+                  <button 
+                    onClick={() => setIsOrderModalOpen(true)}
+                    className="w-full bg-gray-900 text-white h-14 lg:h-16 rounded-xl lg:rounded-2xl font-black text-[10px] lg:text-xs uppercase tracking-[0.2em] shadow-xl shadow-gray-200 hover:bg-black hover:scale-[1.01] active:scale-95 transition-all flex items-center justify-center gap-3"
+                  >
+                    Order Now <CreditCard size={18} className="hidden sm:block" />
+                  </button>
+                  <a 
+                    href={`https://wa.me/8801611065415?text=${encodeURIComponent(`Greetings, I am interested in purchasing the ${product.name} license for ৳${product.price.toLocaleString()}.`)}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="w-full bg-[#24CC63] text-white h-14 lg:h-16 rounded-xl lg:rounded-2xl font-black text-[10px] lg:text-xs uppercase tracking-[0.2em] shadow-xl shadow-green-100 hover:bg-[#20b859] hover:scale-[1.01] active:scale-95 transition-all flex items-center justify-center gap-3"
+                  >
+                    WhatsApp Order
+                  </a>
+                </>
+              )}
+              
               <button 
-                onClick={() => setIsOrderModalOpen(true)}
-                className="w-full bg-gray-900 text-white h-14 lg:h-16 rounded-xl lg:rounded-2xl font-black text-[10px] lg:text-xs uppercase tracking-[0.2em] shadow-xl shadow-gray-200 hover:bg-black hover:scale-[1.01] active:scale-95 transition-all flex items-center justify-center gap-3"
+                onClick={shareProduct}
+                className={`w-full h-14 lg:h-16 rounded-xl lg:rounded-2xl font-black text-[10px] lg:text-xs uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 border ${shared ? 'bg-emerald-500 text-white border-emerald-500 shadow-xl shadow-emerald-100' : 'bg-gray-50 text-gray-400 hover:text-gray-900 border-gray-100'}`}
               >
-                Order Now <CreditCard size={18} className="hidden sm:block" />
+                {shared ? <CheckCircle2 size={18} /> : <Share2 size={18} />}
+                {shared ? 'Link Copied to Clipboard' : 'Share This Product'}
               </button>
-              <a 
-                href={`https://wa.me/8801611065415?text=${encodeURIComponent(`Greetings, I am interested in purchasing the ${product.name} license for ৳${product.price.toLocaleString()}.`)}`}
-                target="_blank"
-                rel="noreferrer"
-                className="w-full bg-[#24CC63] text-white h-14 lg:h-16 rounded-xl lg:rounded-2xl font-black text-[10px] lg:text-xs uppercase tracking-[0.2em] shadow-xl shadow-green-100 hover:bg-[#20b859] hover:scale-[1.01] active:scale-95 transition-all flex items-center justify-center gap-3"
-              >
-                WhatsApp Order
-              </a>
             </div>
 
             <OrderModal 
@@ -215,6 +333,28 @@ export default function ProductDetail() {
           </div>
         </div>
       </div>
+
+      {/* Recommended Section */}
+      {recommendedItems.length > 0 && (
+        <div className="mt-12 lg:mt-24 px-4 lg:px-0">
+          <div className="flex items-center justify-between mb-8 border-b border-gray-100 pb-6">
+            <div>
+              <h3 className="text-xl lg:text-3xl font-black text-gray-900 uppercase tracking-tighter flex items-center gap-3">
+                <Sparkles className="text-brand-primary" />
+                Recommended for You
+              </h3>
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Based on your current interest in {product.category}</p>
+            </div>
+            <Link to="/" className="text-brand-primary text-[10px] font-black uppercase tracking-widest hover:underline whitespace-nowrap">View Store →</Link>
+          </div>
+          
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-8">
+            {recommendedItems.map((item) => (
+              <ProductCard key={item.id} product={item} />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

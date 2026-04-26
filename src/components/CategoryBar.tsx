@@ -20,7 +20,7 @@ export default function CategoryBar({ activeCategory, onCategoryChange, categori
             <LucideIcons.LayoutGrid size={14} />
             All Products
           </button>
-          {categories.map((category) => {
+          {categories.filter(c => c.id !== 'prompts' && c.name !== 'AI Prompts').map((category) => {
             // @ts-ignore
             const Icon = LucideIcons[category.icon] || LucideIcons.Package;
             const isActive = activeCategory === category.name;

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ShoppingCart, Search, Menu, Phone, Mail, X, PackagePlus, UserCircle } from 'lucide-react';
+import { ShoppingCart, Search, Menu, Phone, Mail, X, PackagePlus, UserCircle, Terminal } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Link, useNavigate } from 'react-router-dom';
 import { PRODUCTS } from '../constants';
@@ -198,6 +198,19 @@ export default function Navbar({
             </div>
 
             <div className="flex items-center gap-2 sm:gap-6">
+              <Link 
+                to="/prompts"
+                className="hidden lg:flex items-center gap-2 bg-purple-50 hover:bg-purple-100 px-4 py-2 rounded-xl transition-all border border-purple-100 group"
+              >
+                <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center text-purple-600 shadow-sm group-hover:scale-110 transition-transform">
+                  <Terminal size={18} />
+                </div>
+                <div className="flex flex-col items-start leading-tight">
+                  <span className="text-[10px] font-black text-purple-400 uppercase tracking-widest">Free Library</span>
+                  <span className="text-xs font-black text-purple-900 uppercase">AI Prompts</span>
+                </div>
+              </Link>
+
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}

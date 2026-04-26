@@ -15,7 +15,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       initial={{ opacity: 0, y: 10 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      className="bg-white rounded-xl sm:rounded-2xl border border-gray-100 overflow-hidden hover:shadow-lg transition-all group flex flex-col h-full p-2 sm:p-4 relative"
+      className="bg-white rounded-xl sm:rounded-2xl overflow-hidden hover:shadow-xl transition-all group flex flex-col h-full p-2 sm:p-4 relative"
     >
       <div className="relative aspect-square rounded-lg sm:rounded-xl overflow-hidden bg-gray-50 mb-2 sm:mb-4 flex items-center justify-center">
         <Link to={`/product/${product.id}`} className="w-full h-full">
@@ -27,7 +27,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         </Link>
         
         {product.badge && (
-          <div className="absolute top-1 left-1 sm:top-2 sm:left-2 bg-brand-primary text-white text-[8px] sm:text-[9px] font-black px-1.5 sm:px-2 py-0.5 sm:py-1 rounded uppercase tracking-wider z-10">
+          <div className="absolute top-1 left-1 sm:top-2 sm:left-2 bg-brand-primary text-[8px] sm:text-[9px] font-black px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md text-white uppercase tracking-wider z-10">
             {product.badge}
           </div>
         )}
@@ -62,7 +62,7 @@ export default function ProductCard({ product }: ProductCardProps) {
 
       <div className="flex flex-col flex-1 px-1">
         <Link to={`/product/${product.id}`}>
-          <h4 className="text-[11px] sm:text-sm font-bold text-gray-800 line-clamp-1 mb-0.5 sm:mb-1 group-hover:text-brand-primary transition-colors uppercase tracking-tight">
+          <h4 className="text-[11px] sm:text-sm font-bold text-gray-800 line-clamp-2 h-8 sm:h-10 mb-0.5 sm:mb-1 group-hover:text-brand-primary transition-colors uppercase tracking-tight">
             {product.name}
           </h4>
         </Link>
@@ -71,21 +71,41 @@ export default function ProductCard({ product }: ProductCardProps) {
         </p>
         
         <div className="mt-auto pt-2 sm:pt-3 border-t border-gray-50">
-          <div className="flex items-center flex-wrap gap-1 sm:gap-2 mb-2 sm:mb-3">
-            <span className="text-xs sm:text-base font-black text-brand-primary">৳ {product.price.toLocaleString()}</span>
-            {product.oldPrice && (
-              <span className="text-[8px] sm:text-[10px] text-gray-300 line-through font-bold">৳ {product.oldPrice.toLocaleString()}</span>
-            )}
-          </div>
+          {product.type !== 'prompt' && (
+            <div className="flex items-center flex-wrap gap-1 sm:gap-2 mb-2 sm:mb-3">
+              <span className="text-xs sm:text-base font-black text-brand-primary">৳ {product.price.toLocaleString()}</span>
+              {product.oldPrice && (
+                <span className="text-[8px] sm:text-[10px] text-gray-300 line-through font-bold">৳ {product.oldPrice.toLocaleString()}</span>
+              )}
+            </div>
+          )}
           
-          <a 
-            href={`https://wa.me/8801611065415?text=${encodeURIComponent(`Hello, I want to order ${product.name} from Sinha Tech Solutions.`)}`}
-            target="_blank"
-            rel="noreferrer"
-            className="block w-full py-2 bg-gray-900 text-white text-[9px] sm:text-[11px] font-black rounded-lg hover:bg-brand-primary uppercase tracking-tighter transition-all text-center"
-          >
-            Order Now
-          </a>
+          {product.type === 'prompt' ? (
+            <Link 
+              to={`/product/${product.id}`}
+              className="block w-full py-3 bg-brand-primary/10 text-brand-primary text-[10px] sm:text-xs font-black rounded-xl hover:bg-brand-primary hover:text-white uppercase tracking-widest transition-all text-center shadow-sm hover:shadow-md"
+            >
+              Unlock Prompt
+            </Link>
+          ) : product.type === 'download' ? (
+            <a 
+              href={product.downloadUrl || '#'}
+              target="_blank"
+              rel="noreferrer"
+              className="block w-full py-3 bg-emerald-500 text-white text-[10px] sm:text-xs font-black rounded-xl hover:bg-emerald-600 uppercase tracking-widest transition-all text-center shadow-lg shadow-emerald-100"
+            >
+              Get Download
+            </a>
+          ) : (
+            <a 
+              href={`https://wa.me/8801611065415?text=${encodeURIComponent(`Hello, I want to order ${product.name} from Sinha Tech Solutions.`)}`}
+              target="_blank"
+              rel="noreferrer"
+              className="block w-full py-3 bg-gray-900 text-white text-[10px] sm:text-xs font-black rounded-xl hover:bg-brand-primary uppercase tracking-widest transition-all text-center shadow-xl shadow-gray-100"
+            >
+              Order Now
+            </a>
+          )}
         </div>
       </div>
     </motion.div>
