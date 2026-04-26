@@ -228,41 +228,54 @@ export default function Navbar({
 
               {user ? (
                 isAdmin ? (
-                  <Link to="/admin" className="hidden lg:flex items-center gap-3 bg-brand-primary/10 border border-brand-primary/20 px-4 py-2 rounded-xl text-brand-primary hover:bg-brand-primary/20 transition-all">
-                    <div className="w-6 h-6 rounded-full bg-brand-primary text-white flex items-center justify-center text-[10px] font-black">
-                      {(user.displayName || user.email || 'A')[0].toUpperCase()}
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-[10px] font-black uppercase tracking-tight leading-none">
-                        {user.displayName || 'Admin'}
-                      </span>
-                      <span className="text-[8px] font-bold text-gray-400 uppercase tracking-widest leading-none mt-1">
-                        Dashboard
-                      </span>
-                    </div>
-                  </Link>
+                  <>
+                    <Link to="/admin" className="hidden lg:flex items-center gap-3 bg-brand-primary/10 border border-brand-primary/20 px-4 py-2 rounded-xl text-brand-primary hover:bg-brand-primary/20 transition-all">
+                      <div className="w-6 h-6 rounded-full bg-brand-primary text-white flex items-center justify-center text-[10px] font-black">
+                        {(user.displayName || user.email || 'A')[0].toUpperCase()}
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-[10px] font-black uppercase tracking-tight leading-none">
+                          {user.displayName || 'Admin'}
+                        </span>
+                        <span className="text-[8px] font-bold text-gray-400 uppercase tracking-widest leading-none mt-1">
+                          Dashboard
+                        </span>
+                      </div>
+                    </Link>
+                    <Link to="/admin" className="lg:hidden w-10 h-10 bg-brand-primary/10 rounded-full flex items-center justify-center text-brand-primary">
+                      <UserCircle size={20} />
+                    </Link>
+                  </>
                 ) : (
-                  <div className="hidden lg:flex items-center gap-3">
-                    <div className="flex flex-col items-end">
-                      <span className="text-[10px] font-black text-gray-900 uppercase tracking-widest leading-none">
-                        {user.displayName || user.email?.split('@')[0]}
-                      </span>
-                      <button 
-                        onClick={() => signOut(auth)}
-                        className="text-[8px] font-bold text-brand-primary uppercase tracking-widest leading-none mt-1 hover:underline cursor-pointer"
-                      >
-                        Logout Session
-                      </button>
+                  <>
+                    <div className="hidden lg:flex items-center gap-3">
+                      <div className="flex flex-col items-end">
+                        <span className="text-[10px] font-black text-gray-900 uppercase tracking-widest leading-none">
+                          {user.displayName || user.email?.split('@')[0]}
+                        </span>
+                        <button 
+                          onClick={() => signOut(auth)}
+                          className="text-[8px] font-bold text-brand-primary uppercase tracking-widest leading-none mt-1 hover:underline cursor-pointer"
+                        >
+                          Logout Session
+                        </button>
+                      </div>
                     </div>
-                  </div>
+                    <button 
+                      onClick={() => signOut(auth)}
+                      className="lg:hidden w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-600"
+                    >
+                      <UserCircle size={20} />
+                    </button>
+                  </>
                 )
               ) : (
                 <button 
                   onClick={() => setIsLoginModalOpen(true)}
-                  className="hidden lg:flex items-center gap-2 text-gray-400 hover:text-brand-primary transition-colors hover:scale-105"
+                  className="flex items-center gap-2 text-gray-400 hover:text-brand-primary transition-colors hover:scale-105"
                 >
                   <UserCircle size={20} />
-                  <span className="text-[10px] font-black uppercase tracking-widest">Login / Signup</span>
+                  <span className="hidden lg:block text-[10px] font-black uppercase tracking-widest">Login / Signup</span>
                 </button>
               )}
 

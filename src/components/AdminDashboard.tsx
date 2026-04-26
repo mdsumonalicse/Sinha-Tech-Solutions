@@ -31,12 +31,13 @@ import {
   Mail,
   CreditCard,
   Terminal,
-  Sparkles
+  Sparkles,
+  ArrowLeft
 } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
 import { auth, db } from '../lib/firebase';
 import { signOut } from 'firebase/auth';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { 
   collection, 
   addDoc, 
@@ -146,7 +147,13 @@ interface UserRequest {
 
 export default function AdminDashboard() {
   const { user, isAdmin, loading } = useAuth();
-  const [activeTab, setActiveTab] = useState('overview');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get('tab') || 'overview';
+  
+  const setActiveTab = (tab: string) => {
+    setSearchParams({ tab });
+  };
+
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [isPromptModalOpen, setIsPromptModalOpen] = useState(false);
@@ -211,15 +218,42 @@ export default function AdminDashboard() {
 
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
+  useEffect(() => {
+    const hasOpenModal = isProductModalOpen || isPromptModalOpen || !!selectedRequest || !!selectedOrder;
+    if (hasOpenModal) {
+      const handlePopState = () => {
+        setIsProductModalOpen(false);
+        setIsPromptModalOpen(false);
+        setSelectedRequest(null);
+        setSelectedOrder(null);
+      };
+      
+      window.history.pushState({ modal: 'admin' }, '');
+      window.addEventListener('popstate', handlePopState);
+      
+      return () => {
+        window.removeEventListener('popstate', handlePopState);
+      };
+    }
+  }, [isProductModalOpen, isPromptModalOpen, selectedRequest, selectedOrder]);
+
   return (
     <div className="min-h-screen bg-[#F8F9FA] flex flex-col lg:flex-row">
       {/* Mobile Top Bar */}
       <div className="lg:hidden bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between sticky top-0 z-[40]">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-brand-primary rounded-lg flex items-center justify-center text-white shadow-lg shadow-brand-primary/20">
-            <Package size={18} />
+          <button 
+            onClick={() => navigate('/')}
+            className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400 hover:text-gray-900 transition-colors"
+          >
+            <LogOut size={20} className="rotate-180" />
+          </button>
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-brand-primary rounded-lg flex items-center justify-center text-white shadow-lg shadow-brand-primary/20">
+              <Package size={18} />
+            </div>
+            <span className="text-base font-black text-gray-900 tracking-tighter uppercase leading-none">STS ADMIN</span>
           </div>
-          <span className="text-base font-black text-gray-900 tracking-tighter uppercase leading-none">STS ADMIN</span>
         </div>
         <button 
           onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
@@ -299,13 +333,22 @@ export default function AdminDashboard() {
                 <span className="text-[9px] text-gray-400 font-bold truncate tracking-widest leading-none mt-1">SUPER ADMIN</span>
               </div>
             </div>
-            <button 
-              onClick={() => signOut(auth)}
-              className="w-full flex items-center justify-center gap-2 py-4 text-[10px] font-black text-red-500 hover:bg-red-500 hover:text-white rounded-2xl transition-all border border-red-100 uppercase tracking-[0.2em]"
-            >
-              <LogOut size={14} />
-              Logout Session
-            </button>
+            <div className="space-y-2">
+              <button 
+                onClick={() => navigate('/')}
+                className="w-full flex items-center justify-center gap-2 py-4 text-[10px] font-black text-brand-primary hover:bg-brand-primary hover:text-white rounded-2xl transition-all border border-brand-primary/10 bg-white uppercase tracking-[0.2em]"
+              >
+                <ExternalLink size={14} />
+                Exit to Website
+              </button>
+              <button 
+                onClick={() => signOut(auth)}
+                className="w-full flex items-center justify-center gap-2 py-4 text-[10px] font-black text-red-500 hover:bg-red-500 hover:text-white rounded-2xl transition-all border border-red-100 uppercase tracking-[0.2em]"
+              >
+                <LogOut size={14} />
+                Logout Session
+              </button>
+            </div>
           </div>
         </div>
       </aside>
@@ -314,6 +357,14 @@ export default function AdminDashboard() {
       <main className="flex-1 min-w-0 flex flex-col p-4 sm:p-6 lg:p-12">
         <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 lg:mb-12">
           <div>
+            {activeTab !== 'overview' && (
+              <button 
+                onClick={() => setActiveTab('overview')}
+                className="lg:hidden flex items-center gap-2 text-[10px] font-black text-brand-primary uppercase tracking-widest mb-4 hover:translate-x-[-4px] transition-transform"
+              >
+                <ArrowLeft size={14} /> Back to Overview
+              </button>
+            )}
             <h1 className="text-2xl sm:text-4xl font-black text-gray-900 uppercase tracking-tighter mb-2">
               {menuItems.find(i => i.id === activeTab)?.label}
             </h1>

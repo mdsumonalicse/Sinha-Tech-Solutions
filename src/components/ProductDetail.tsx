@@ -95,6 +95,21 @@ export default function ProductDetail() {
     window.scrollTo(0, 0);
   }, [productId]);
 
+  useEffect(() => {
+    if (isOrderModalOpen) {
+      const handlePopState = () => {
+        setIsOrderModalOpen(false);
+      };
+      
+      window.history.pushState({ modal: 'order' }, '');
+      window.addEventListener('popstate', handlePopState);
+      
+      return () => {
+        window.removeEventListener('popstate', handlePopState);
+      };
+    }
+  }, [isOrderModalOpen]);
+
   if (loading) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">

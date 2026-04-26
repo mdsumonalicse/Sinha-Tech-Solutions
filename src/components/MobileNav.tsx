@@ -13,6 +13,8 @@ export default function MobileNav({ onOpenCategories, onOpenSearch }: MobileNavP
   const location = useLocation();
   const { user, isAdmin } = useAuth();
 
+  if (location.pathname.startsWith('/admin') || location.pathname === '/prompts') return null;
+
   const navItems = [
     { icon: <Home size={20} />, label: 'Home', path: '/' },
     { icon: <Grid size={20} />, label: 'Categories', onClick: onOpenCategories },

@@ -1,8 +1,9 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, LayoutGrid, Package, ChevronRight } from 'lucide-react';
+import { X, LayoutGrid, Package, ChevronRight, ShieldCheck } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../lib/AuthContext';
 
 interface MobileMenuProps {
   isOpen: boolean;
@@ -13,6 +14,7 @@ interface MobileMenuProps {
 }
 
 export default function MobileMenu({ isOpen, onClose, categories, activeCategory, onCategoryChange }: MobileMenuProps) {
+  const { isAdmin } = useAuth();
   return (
     <AnimatePresence>
       {isOpen && (
@@ -108,6 +110,23 @@ export default function MobileMenu({ isOpen, onClose, categories, activeCategory
                     </div>
                     <ChevronRight size={16} />
                   </Link>
+
+                  {isAdmin && (
+                    <Link 
+                      to="/admin"
+                      onClick={onClose}
+                      className="w-full p-4 rounded-2xl flex items-center gap-4 bg-brand-primary/5 text-brand-primary border border-brand-primary/10 mt-2"
+                    >
+                      <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-brand-primary shadow-sm">
+                        <ShieldCheck size={20} />
+                      </div>
+                      <div className="flex flex-col flex-1">
+                        <span className="font-black text-xs uppercase tracking-widest text-left">Admin Dashboard</span>
+                        <span className="text-[10px] text-gray-400 font-bold uppercase tracking-tight text-left">Control Panel</span>
+                      </div>
+                      <ChevronRight size={16} />
+                    </Link>
+                  )}
                 </div>
               </div>
             </div>

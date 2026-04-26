@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import MobileNav from './components/MobileNav';
 import SearchOverlay from './components/SearchOverlay';
@@ -170,6 +170,40 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function MainLayout({ children, categories, products, activeCategory, setActiveCategory, isMobileMenuOpen, setIsMobileMenuOpen, isSearchOverlayOpen, setIsSearchOverlayOpen }: any) {
+  const location = useLocation();
+  const isAdminPath = location.pathname.startsWith('/admin');
+
+  return (
+    <div className="min-h-screen bg-[#F3F4F6] flex flex-col font-sans">
+      {!isAdminPath && (
+        <Navbar 
+          categories={categories.length > 0 ? categories : CATEGORIES}
+          products={products.length > 0 ? products : PRODUCTS}
+          activeCategory={activeCategory}
+          onCategoryChange={setActiveCategory}
+          isMobileMenuOpen={isMobileMenuOpen}
+          setIsMobileMenuOpen={setIsMobileMenuOpen}
+        />
+      )}
+      
+      <main className={`flex-1 ${isAdminPath ? 'py-0' : 'py-8'}`}>
+        <div className={isAdminPath ? '' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'}>
+          {children}
+        </div>
+      </main>
+
+      {!isAdminPath && <Footer />}
+      
+      <SearchOverlay 
+        isOpen={isSearchOverlayOpen}
+        onClose={() => setIsSearchOverlayOpen(false)}
+        products={products}
+      />
+    </div>
+  );
+}
+
 export default function App() {
   const [activeCategory, setActiveCategory] = React.useState('all');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
@@ -198,58 +232,58 @@ export default function App() {
     };
   }, []);
 
+  React.useEffect(() => {
+    if (isMobileMenuOpen || isSearchOverlayOpen) {
+      const handlePopState = () => {
+        setIsMobileMenuOpen(false);
+        setIsSearchOverlayOpen(false);
+      };
+      
+      window.history.pushState({ modal: 'overlay' }, '');
+      window.addEventListener('popstate', handlePopState);
+      
+      return () => {
+        window.removeEventListener('popstate', handlePopState);
+      };
+    }
+  }, [isMobileMenuOpen, isSearchOverlayOpen]);
+
   return (
     <AuthProvider>
       <Router>
-        <div className="min-h-screen bg-[#F3F4F6] flex flex-col font-sans">
-          <Navbar 
-            categories={categories.length > 0 ? categories : CATEGORIES}
-            products={products.length > 0 ? products : PRODUCTS}
-            activeCategory={activeCategory}
-            onCategoryChange={setActiveCategory}
-            isMobileMenuOpen={isMobileMenuOpen}
-            setIsMobileMenuOpen={setIsMobileMenuOpen}
-          />
-          
-          <main className="flex-1 py-8">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <Routes>
-                <Route path="/" element={
-                  <Home 
-                    activeCategory={activeCategory} 
-                    setActiveCategory={setActiveCategory} 
-                    categories={categories}
-                    products={products}
-                    loading={loading}
-                  />
-                } />
-                <Route path="/product/:productId" element={<ProductDetail />} />
-                <Route path="/prompts" element={<PromptsPage />} />
-                <Route path="/search" element={<SearchResults products={products} />} />
-                <Route 
-                  path="/admin" 
-                  element={
-                    <AdminRoute>
-                      <AdminDashboard />
-                    </AdminRoute>
-                  } 
-                />
-              </Routes>
-            </div>
-          </main>
-
-          <Footer />
-          <MobileNav 
-            onOpenCategories={() => setIsMobileMenuOpen(true)} 
-            onOpenSearch={() => setIsSearchOverlayOpen(true)}
-          />
-
-          <SearchOverlay 
-            isOpen={isSearchOverlayOpen}
-            onClose={() => setIsSearchOverlayOpen(false)}
-            products={products}
-          />
-        </div>
+        <MainLayout
+          categories={categories}
+          products={products}
+          activeCategory={activeCategory}
+          setActiveCategory={setActiveCategory}
+          isMobileMenuOpen={isMobileMenuOpen}
+          setIsMobileMenuOpen={setIsMobileMenuOpen}
+          isSearchOverlayOpen={isSearchOverlayOpen}
+          setIsSearchOverlayOpen={setIsSearchOverlayOpen}
+        >
+          <Routes>
+            <Route path="/" element={
+              <Home 
+                activeCategory={activeCategory} 
+                setActiveCategory={setActiveCategory} 
+                categories={categories}
+                products={products}
+                loading={loading}
+              />
+            } />
+            <Route path="/product/:productId" element={<ProductDetail />} />
+            <Route path="/prompts" element={<PromptsPage />} />
+            <Route path="/search" element={<SearchResults products={products} />} />
+            <Route 
+              path="/admin" 
+              element={
+                <AdminRoute>
+                  <AdminDashboard />
+                </AdminRoute>
+              } 
+            />
+          </Routes>
+        </MainLayout>
       </Router>
     </AuthProvider>
   );

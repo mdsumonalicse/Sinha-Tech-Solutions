@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../lib/firebase';
-import { Copy, CheckCircle2, Search, Terminal, Sparkles, Share2 } from 'lucide-react';
+import { Copy, CheckCircle2, Search, Terminal, Sparkles, Share2, ArrowLeft } from 'lucide-react';
 
 export default function PromptsPage() {
   const [prompts, setPrompts] = useState<any[]>([]);
@@ -48,7 +48,14 @@ export default function PromptsPage() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-screen bg-gray-50 pb-20 relative">
+      <button 
+        onClick={() => window.history.back()}
+        className="fixed top-4 left-4 z-50 w-10 h-10 bg-white shadow-xl rounded-xl flex items-center justify-center text-gray-400 hover:text-gray-900 transition-all border border-gray-100 sm:hidden"
+      >
+        <ArrowLeft size={18} />
+      </button>
+
       {/* Hero Section */}
       <div className="bg-white border-b border-gray-100 pt-16 pb-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
