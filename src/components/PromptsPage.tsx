@@ -11,6 +11,8 @@ export default function PromptsPage() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [sharedId, setSharedId] = useState<string | null>(null);
 
+  const [isPageShared, setIsPageShared] = useState(false);
+
   useEffect(() => {
     const q = query(collection(db, 'products'), where('type', '==', 'prompt'));
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -21,24 +23,92 @@ export default function PromptsPage() {
     return () => unsubscribe();
   }, []);
 
-  const handleCopy = (id: string, text: string) => {
-    navigator.clipboard.writeText(text);
+  const handlePageShare = async () => {
+    const url = window.location.origin + '/prompts';
+    const title = 'Sinha Tech Solutions - AI Prompt Engineering Library';
+    const text = 'Curated collection of high-performing AI prompts. Copy and use them instantly!';
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title, text, url });
+        setIsPageShared(true);
+        setTimeout(() => setIsPageShared(false), 2000);
+        return;
+      } catch (error) {
+        console.log("Share failed or cancelled", error);
+      }
+    }
+
+    try {
+      if (navigator.clipboard) {
+        await navigator.clipboard.writeText(url);
+      } else {
+        const textArea = document.createElement("textarea");
+        textArea.value = url;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      }
+      setIsPageShared(true);
+      setTimeout(() => setIsPageShared(false), 2000);
+    } catch (err) {
+      console.error("Fallback copy failed", err);
+    }
+  };
+
+  const handleCopy = async (id: string, text: string) => {
+    try {
+      if (navigator.clipboard) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        throw new Error('Clipboard API unavailable');
+      }
+    } catch (err) {
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+    }
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const handleShare = (prompt: any) => {
+  const handleShare = async (prompt: any) => {
     const url = `${window.location.origin}/prompts#${prompt.id}`;
-    navigator.clipboard.writeText(url);
-    setSharedId(prompt.id);
-    setTimeout(() => setSharedId(null), 2000);
-
+    
     if (navigator.share) {
-      navigator.share({
-        title: prompt.name,
-        text: `Check out this AI Prompt: ${prompt.name}`,
-        url: url,
-      }).catch(console.error);
+      try {
+        await navigator.share({
+          title: prompt.name,
+          text: `Check out this AI Prompt: ${prompt.name}`,
+          url: url,
+        });
+        setSharedId(prompt.id);
+        setTimeout(() => setSharedId(null), 2000);
+        return;
+      } catch (error) {
+        console.log("Share failed or cancelled", error);
+      }
+    }
+
+    try {
+      if (navigator.clipboard) {
+        await navigator.clipboard.writeText(url);
+      } else {
+        const textArea = document.createElement("textarea");
+        textArea.value = url;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      }
+      setSharedId(prompt.id);
+      setTimeout(() => setSharedId(null), 2000);
+    } catch (err) {
+      console.error("Fallback copy failed", err);
     }
   };
 
@@ -80,10 +150,31 @@ export default function PromptsPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="text-gray-500 font-bold uppercase text-[10px] sm:text-xs tracking-[0.2em] max-w-2xl mx-auto"
+            className="text-gray-500 font-bold uppercase text-[10px] sm:text-xs tracking-[0.2em] max-w-2xl mx-auto mb-8"
           >
             Free access to our curated collection of high-performing AI prompts. Copy and use them instantly for your projects.
           </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.3 }}
+          >
+            <button 
+              onClick={handlePageShare}
+              className={`inline-flex items-center gap-3 px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] transition-all ${
+                isPageShared 
+                  ? 'bg-emerald-500 text-white shadow-xl shadow-emerald-100' 
+                  : 'bg-white text-brand-primary border-2 border-brand-primary hover:bg-brand-primary hover:text-white shadow-xl shadow-brand-primary/10'
+              }`}
+            >
+              {isPageShared ? (
+                <>LINK COPIED! <CheckCircle2 size={16} /></>
+              ) : (
+                <>SHARE LIBRARY <Share2 size={16} /></>
+              )}
+            </button>
+          </motion.div>
         </div>
       </div>
 

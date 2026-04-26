@@ -32,27 +32,60 @@ export default function ProductDetail() {
   const [copied, setCopied] = useState(false);
   const [shared, setShared] = useState(false);
 
-  const copyPrompt = () => {
+  const copyPrompt = async () => {
     if (product?.prompt) {
-      navigator.clipboard.writeText(product.prompt);
+      try {
+        if (navigator.clipboard) {
+          await navigator.clipboard.writeText(product.prompt);
+        } else {
+          throw new Error('Clipboard API unavailable');
+        }
+      } catch (err) {
+        const textArea = document.createElement("textarea");
+        textArea.value = product.prompt;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      }
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
   };
 
-  const shareProduct = () => {
+  const shareProduct = async () => {
     const url = window.location.href;
-    navigator.clipboard.writeText(url);
-    setShared(true);
-    setTimeout(() => setShared(false), 2000);
     
-    // Use native share if available
     if (navigator.share) {
-      navigator.share({
-        title: product.name,
-        text: `Check out ${product.name} on Sinha Tech Solutions`,
-        url: url,
-      }).catch(console.error);
+      try {
+        await navigator.share({
+          title: product.name,
+          text: `Check out ${product.name} on Sinha Tech Solutions`,
+          url: url,
+        });
+        setShared(true);
+        setTimeout(() => setShared(false), 2000);
+        return;
+      } catch (error) {
+        console.log("Share failed or cancelled", error);
+      }
+    }
+
+    try {
+      if (navigator.clipboard) {
+        await navigator.clipboard.writeText(url);
+      } else {
+        const textArea = document.createElement("textarea");
+        textArea.value = url;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      }
+      setShared(true);
+      setTimeout(() => setShared(false), 2000);
+    } catch (err) {
+      console.error("Fallback copy failed", err);
     }
   };
 
