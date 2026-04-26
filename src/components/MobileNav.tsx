@@ -6,16 +6,17 @@ import { useAuth } from '../lib/AuthContext';
 
 interface MobileNavProps {
   onOpenCategories: () => void;
+  onOpenSearch: () => void;
 }
 
-export default function MobileNav({ onOpenCategories }: MobileNavProps) {
+export default function MobileNav({ onOpenCategories, onOpenSearch }: MobileNavProps) {
   const location = useLocation();
   const { user, isAdmin } = useAuth();
 
   const navItems = [
     { icon: <Home size={20} />, label: 'Home', path: '/' },
     { icon: <Grid size={20} />, label: 'Categories', onClick: onOpenCategories },
-    { icon: <Search size={20} />, label: 'Search', path: '/search' },
+    { icon: <Search size={20} />, label: 'Search', onClick: onOpenSearch },
     { 
       icon: <User size={20} />, 
       label: isAdmin ? 'Admin' : 'Me', 

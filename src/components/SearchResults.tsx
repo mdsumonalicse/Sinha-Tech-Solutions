@@ -50,39 +50,58 @@ export default function SearchResults({ products = [] }: { products?: any[] }) {
 
   return (
     <div className="py-8 min-h-screen">
-      <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div>
-          <span className="text-[10px] font-black text-brand-primary uppercase tracking-[0.2em]">Search Results</span>
-          <h1 className="text-3xl font-black text-gray-900 tracking-tighter mt-1 uppercase">
-            {query ? `Results for "${query}"` : 'All Products'}
-            <span className="ml-3 text-sm font-bold text-gray-400 normal-case tracking-normal">
-              ({filteredProducts.length} items found)
-            </span>
-          </h1>
+      <div className="mb-8 flex flex-col gap-6">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <span className="text-[10px] font-black text-brand-primary uppercase tracking-[0.2em]">Search Results</span>
+            <h1 className="text-3xl font-black text-gray-900 tracking-tighter mt-1 uppercase">
+              {query ? `Results for "${query}"` : 'All Products'}
+              <span className="ml-3 text-sm font-bold text-gray-400 normal-case tracking-normal">
+                ({filteredProducts.length} items found)
+              </span>
+            </h1>
+          </div>
+          
+          <div className="flex items-center gap-3">
+              <div className="flex bg-white rounded-lg p-1 border border-gray-100">
+                  <button className="p-1.5 text-brand-primary bg-brand-primary/10 rounded-md">
+                      <LayoutGrid size={16} />
+                  </button>
+                  <button className="p-1.5 text-gray-400 hover:text-gray-600 transition-all">
+                      <List size={16} />
+                  </button>
+              </div>
+              <div className="relative group">
+                  <select 
+                      value={sortBy}
+                      onChange={(e) => setSortBy(e.target.value as any)}
+                      className="appearance-none bg-white border border-gray-100 rounded-lg py-2 pl-4 pr-10 text-xs font-bold text-gray-700 outline-none focus:ring-2 focus:ring-brand-primary cursor-pointer transition-all shadow-sm"
+                  >
+                      <option value="default">Sort by: Default</option>
+                      <option value="price-low">Price: Low to High</option>
+                      <option value="price-high">Price: High to Low</option>
+                      <option value="name">Alphabetical</option>
+                  </select>
+                  <ArrowUpDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+              </div>
+          </div>
         </div>
-        
-        <div className="flex items-center gap-3">
-            <div className="flex bg-white rounded-lg p-1 border border-gray-100">
-                <button className="p-1.5 text-brand-primary bg-brand-primary/10 rounded-md">
-                    <LayoutGrid size={16} />
-                </button>
-                <button className="p-1.5 text-gray-400 hover:text-gray-600 transition-all">
-                    <List size={16} />
-                </button>
-            </div>
-            <div className="relative group">
-                <select 
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value as any)}
-                    className="appearance-none bg-white border border-gray-100 rounded-lg py-2 pl-4 pr-10 text-xs font-bold text-gray-700 outline-none focus:ring-2 focus:ring-brand-primary cursor-pointer transition-all shadow-sm"
-                >
-                    <option value="default">Sort by: Default</option>
-                    <option value="price-low">Price: Low to High</option>
-                    <option value="price-high">Price: High to Low</option>
-                    <option value="name">Alphabetical</option>
-                </select>
-                <ArrowUpDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-            </div>
+
+        {/* Local Search Input for Mobile/Quick Access */}
+        <div className="relative max-w-lg lg:hidden">
+          <input 
+            type="text"
+            defaultValue={query}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                const val = (e.target as HTMLInputElement).value;
+                window.location.href = `/search?q=${encodeURIComponent(val)}`;
+              }
+            }}
+            placeholder="Search within these results..."
+            className="w-full bg-white border border-gray-100 rounded-xl py-3 px-12 text-xs font-bold focus:ring-2 focus:ring-brand-primary outline-none shadow-sm"
+          />
+          <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
         </div>
       </div>
 

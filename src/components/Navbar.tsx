@@ -133,7 +133,7 @@ export default function Navbar({
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onFocus={() => searchQuery.length > 1 && setShowSuggestions(true)}
                   placeholder="Search products..."
-                  className="w-full bg-gray-100 border-none rounded-2xl py-2 px-4 pl-4 focus:ring-2 focus:ring-brand-primary outline-none text-[10px] sm:text-xs transition-all"
+                  className="w-full bg-gray-100 border-none rounded-2xl py-2 px-4 pl-4 focus:ring-2 focus:ring-brand-primary outline-none text-xs transition-all"
                 />
                 <div className="absolute right-2 top-1 flex items-center gap-1">
                   {searchQuery && (

@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import MobileNav from './components/MobileNav';
+import SearchOverlay from './components/SearchOverlay';
 import CategoryBar from './components/CategoryBar';
 import ProductCard from './components/ProductCard';
 import Footer from './components/Footer';
@@ -170,6 +171,7 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
 export default function App() {
   const [activeCategory, setActiveCategory] = React.useState('all');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
+  const [isSearchOverlayOpen, setIsSearchOverlayOpen] = React.useState(false);
   const [products, setProducts] = React.useState<any[]>([]);
   const [categories, setCategories] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -234,7 +236,16 @@ export default function App() {
           </main>
 
           <Footer />
-          <MobileNav onOpenCategories={() => setIsMobileMenuOpen(true)} />
+          <MobileNav 
+            onOpenCategories={() => setIsMobileMenuOpen(true)} 
+            onOpenSearch={() => setIsSearchOverlayOpen(true)}
+          />
+
+          <SearchOverlay 
+            isOpen={isSearchOverlayOpen}
+            onClose={() => setIsSearchOverlayOpen(false)}
+            products={products}
+          />
         </div>
       </Router>
     </AuthProvider>
