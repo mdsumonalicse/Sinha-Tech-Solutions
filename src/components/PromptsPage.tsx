@@ -23,6 +23,43 @@ export default function PromptsPage() {
     return () => unsubscribe();
   }, []);
 
+  const copyToClipboard = async (text: string) => {
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+        return true;
+      }
+    } catch (err) {
+      console.warn('Clipboard API failed, falling back', err);
+    }
+
+    // Fallback for non-secure contexts or older mobile browsers
+    try {
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      
+      // Ensure it's not visible but exists in DOM
+      textArea.style.position = "fixed";
+      textArea.style.left = "-9999px";
+      textArea.style.top = "0";
+      textArea.style.opacity = "0";
+      
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      
+      // For iOS
+      textArea.setSelectionRange(0, 99999);
+      
+      const successful = document.execCommand('copy');
+      document.body.removeChild(textArea);
+      return successful;
+    } catch (err) {
+      console.error('Fallback copy failed', err);
+      return false;
+    }
+  };
+
   const handlePageShare = async () => {
     const url = window.location.origin + '/prompts';
     const title = 'Sinha Tech Solutions - AI Prompt Engineering Library';
@@ -39,41 +76,19 @@ export default function PromptsPage() {
       }
     }
 
-    try {
-      if (navigator.clipboard) {
-        await navigator.clipboard.writeText(url);
-      } else {
-        const textArea = document.createElement("textarea");
-        textArea.value = url;
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textArea);
-      }
+    const success = await copyToClipboard(url);
+    if (success) {
       setIsPageShared(true);
       setTimeout(() => setIsPageShared(false), 2000);
-    } catch (err) {
-      console.error("Fallback copy failed", err);
     }
   };
 
   const handleCopy = async (id: string, text: string) => {
-    try {
-      if (navigator.clipboard) {
-        await navigator.clipboard.writeText(text);
-      } else {
-        throw new Error('Clipboard API unavailable');
-      }
-    } catch (err) {
-      const textArea = document.createElement("textarea");
-      textArea.value = text;
-      document.body.appendChild(textArea);
-      textArea.select();
-      document.execCommand('copy');
-      document.body.removeChild(textArea);
+    const success = await copyToClipboard(text);
+    if (success) {
+      setCopiedId(id);
+      setTimeout(() => setCopiedId(null), 2000);
     }
-    setCopiedId(id);
-    setTimeout(() => setCopiedId(null), 2000);
   };
 
   const handleShare = async (prompt: any) => {
@@ -94,21 +109,10 @@ export default function PromptsPage() {
       }
     }
 
-    try {
-      if (navigator.clipboard) {
-        await navigator.clipboard.writeText(url);
-      } else {
-        const textArea = document.createElement("textarea");
-        textArea.value = url;
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textArea);
-      }
+    const success = await copyToClipboard(url);
+    if (success) {
       setSharedId(prompt.id);
       setTimeout(() => setSharedId(null), 2000);
-    } catch (err) {
-      console.error("Fallback copy failed", err);
     }
   };
 

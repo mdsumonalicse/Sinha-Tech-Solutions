@@ -32,24 +32,43 @@ export default function ProductDetail() {
   const [copied, setCopied] = useState(false);
   const [shared, setShared] = useState(false);
 
+  const copyToClipboard = async (text: string) => {
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+        return true;
+      }
+    } catch (err) {
+      console.warn('Clipboard API failed, falling back', err);
+    }
+
+    try {
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-9999px";
+      textArea.style.top = "0";
+      textArea.style.opacity = "0";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      textArea.setSelectionRange(0, 99999);
+      const successful = document.execCommand('copy');
+      document.body.removeChild(textArea);
+      return successful;
+    } catch (err) {
+      console.error('Fallback copy failed', err);
+      return false;
+    }
+  };
+
   const copyPrompt = async () => {
     if (product?.prompt) {
-      try {
-        if (navigator.clipboard) {
-          await navigator.clipboard.writeText(product.prompt);
-        } else {
-          throw new Error('Clipboard API unavailable');
-        }
-      } catch (err) {
-        const textArea = document.createElement("textarea");
-        textArea.value = product.prompt;
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textArea);
+      const success = await copyToClipboard(product.prompt);
+      if (success) {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
       }
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
     }
   };
 
@@ -71,21 +90,10 @@ export default function ProductDetail() {
       }
     }
 
-    try {
-      if (navigator.clipboard) {
-        await navigator.clipboard.writeText(url);
-      } else {
-        const textArea = document.createElement("textarea");
-        textArea.value = url;
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textArea);
-      }
+    const success = await copyToClipboard(url);
+    if (success) {
       setShared(true);
       setTimeout(() => setShared(false), 2000);
-    } catch (err) {
-      console.error("Fallback copy failed", err);
     }
   };
 

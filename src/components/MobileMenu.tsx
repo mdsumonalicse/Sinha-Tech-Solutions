@@ -69,48 +69,57 @@ export default function MobileMenu({ isOpen, onClose, categories, activeCategory
                   <ChevronRight size={16} className={activeCategory === 'all' ? 'opacity-100' : 'opacity-0'} />
                 </button>
 
-                {categories.filter(c => c.id !== 'prompts' && c.name !== 'AI Prompts').map((cat) => {
+                {categories.map((cat) => {
                   // @ts-ignore
                   const Icon = LucideIcons[cat.icon] || LucideIcons.Package;
-                  const isActive = activeCategory === cat.name;
+                  const isPrompt = cat.name.toLowerCase() === 'prompt' || cat.name.toLowerCase() === 'ai prompts';
+                  const isActive = isPrompt ? false : activeCategory === cat.name;
+
+                  const handleClick = () => {
+                    if (isPrompt) {
+                      onClose();
+                      window.location.href = '/prompts';
+                    } else {
+                      onCategoryChange(cat.name);
+                      onClose();
+                    }
+                  };
+
                   return (
                     <button
                       key={cat.id}
-                      onClick={() => {
-                        onCategoryChange(cat.name);
-                        onClose();
-                      }}
-                      className={`w-full p-4 rounded-2xl flex items-center gap-4 transition-all ${
-                        isActive 
+                      onClick={handleClick}
+                      className={`w-full p-4 rounded-2xl flex items-center gap-4 transition-all relative overflow-hidden ${
+                        isActive || isPrompt
                           ? 'bg-brand-primary/10 text-brand-primary border border-brand-primary/20' 
                           : 'bg-gray-50 text-gray-600 border border-transparent'
                       }`}
                     >
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isActive ? 'bg-brand-primary text-white' : 'bg-white text-gray-400'}`}>
-                        <Icon size={20} />
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isActive || isPrompt ? 'bg-brand-primary text-white shadow-lg shadow-brand-primary/20' : 'bg-white text-gray-400'}`}>
+                        <Icon size={20} className={isPrompt ? 'animate-pulse' : ''} />
                       </div>
-                      <span className="font-black text-xs uppercase tracking-widest flex-1 text-left">{cat.name}</span>
-                      <ChevronRight size={16} className={isActive ? 'opacity-100' : 'opacity-0'} />
+                      <div className="flex flex-col flex-1 items-start">
+                        <span className={`font-black text-xs uppercase tracking-widest text-left ${isPrompt ? 'bg-clip-text text-transparent bg-gradient-to-r from-brand-primary to-purple-600 animate-gradient' : ''}`}>
+                          {cat.name}
+                        </span>
+                        {isPrompt && (
+                          <span className="text-[9px] font-black text-purple-400 uppercase tracking-tight animate-pulse">Exclusive Assets</span>
+                        )}
+                      </div>
+                      {isPrompt && (
+                        <div className="absolute top-0 right-0 p-2">
+                          <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-primary opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-primary"></span>
+                          </span>
+                        </div>
+                      )}
+                      <ChevronRight size={16} className={isActive ? 'opacity-100' : 'opacity-40'} />
                     </button>
                   );
                 })}
 
                 <div className="pt-4 mt-4 border-t border-gray-100">
-                  <Link 
-                    to="/prompts"
-                    onClick={onClose}
-                    className="w-full p-4 rounded-2xl flex items-center gap-4 bg-purple-50 text-purple-600 border border-purple-100"
-                  >
-                    <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-purple-600 shadow-sm">
-                      <LucideIcons.Terminal size={20} />
-                    </div>
-                    <div className="flex flex-col flex-1">
-                      <span className="font-black text-xs uppercase tracking-widest text-left">AI Prompts</span>
-                      <span className="text-[10px] text-purple-400 font-bold uppercase tracking-tight text-left">Free Library</span>
-                    </div>
-                    <ChevronRight size={16} />
-                  </Link>
-
                   {isAdmin && (
                     <Link 
                       to="/admin"

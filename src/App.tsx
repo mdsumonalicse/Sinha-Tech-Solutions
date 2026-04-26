@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import MobileNav from './components/MobileNav';
 import SearchOverlay from './components/SearchOverlay';
@@ -21,6 +21,7 @@ import { db } from './lib/firebase';
 import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
 
 function Home({ activeCategory, setActiveCategory, categories, products, loading }: any) {
+  const navigate = useNavigate();
   const filteredProducts = (activeCategory === 'all' 
     ? (products.length > 0 ? products : PRODUCTS)
     : products.filter((p: any) => p.category && p.category.toLowerCase() === activeCategory.toLowerCase())
@@ -65,19 +66,42 @@ function Home({ activeCategory, setActiveCategory, categories, products, loading
             {currentCategories.map((cat: any) => {
               // @ts-ignore
               const Icon = LucideIcons[cat.icon] || LucideIcons.Package;
+              const isPrompt = cat.name.toLowerCase() === 'prompt' || cat.name.toLowerCase() === 'ai prompts';
               const isActive = activeCategory === cat.name;
+              
+              const handleClick = () => {
+                if (isPrompt) {
+                  navigate('/prompts');
+                } else {
+                  setActiveCategory(cat.name);
+                }
+              };
+
               return (
                 <button 
                   key={cat.id} 
-                  onClick={() => setActiveCategory(cat.name)}
-                  className={`bg-white p-3 rounded-xl border flex items-center gap-3 hover:shadow-md transition-all cursor-pointer group ${isActive ? 'border-brand-primary/40 shadow-sm' : 'border-gray-100'}`}
+                  onClick={handleClick}
+                  className={`bg-white p-3 rounded-xl border flex items-center gap-3 hover:shadow-md transition-all cursor-pointer group relative overflow-hidden ${isActive ? 'border-brand-primary/40 shadow-sm' : 'border-gray-100'}`}
                 >
-                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all ${isActive ? 'text-brand-primary bg-brand-primary/5' : 'bg-gray-50 text-gray-400 group-hover:text-brand-primary group-hover:bg-brand-primary/5'}`}>
-                    <Icon size={20} />
+                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all ${isActive || isPrompt ? 'text-brand-primary bg-brand-primary/5' : 'bg-gray-50 text-gray-400 group-hover:text-brand-primary group-hover:bg-brand-primary/5'}`}>
+                    <Icon size={20} className={isPrompt ? 'animate-pulse' : ''} />
                   </div>
-                  <span className={`text-xs font-bold transition-all ${isActive ? 'text-brand-primary' : 'text-gray-700 group-hover:text-brand-primary'}`}>
-                    {cat.name}
-                  </span>
+                  <div className="flex flex-col items-start">
+                    <span className={`text-xs font-bold transition-all ${isActive || isPrompt ? 'text-brand-primary' : 'text-gray-700 group-hover:text-brand-primary'}`}>
+                      {cat.name}
+                    </span>
+                    {isPrompt && (
+                      <span className="text-[8px] font-black text-purple-500 uppercase tracking-widest animate-pulse">New Prompts</span>
+                    )}
+                  </div>
+                  {isPrompt && (
+                    <div className="absolute top-0 right-0 p-1">
+                      <span className="relative flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-primary opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-primary"></span>
+                      </span>
+                    </div>
+                  )}
                 </button>
               );
             })}
