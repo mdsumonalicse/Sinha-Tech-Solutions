@@ -240,7 +240,8 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-[#F8F9FA] flex flex-col lg:flex-row">
       {/* Mobile Top Bar */}
-      <div className="lg:hidden bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between sticky top-0 z-[40]">
+      <div className="lg:hidden h-[73px]" />
+      <div className="lg:hidden bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between fixed top-0 left-0 right-0 z-[40]">
         <div className="flex items-center gap-3">
           <button 
             onClick={() => navigate('/')}

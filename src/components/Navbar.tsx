@@ -80,24 +80,25 @@ export default function Navbar({
   };
   return (
     <>
-      {/* Top Banner */}
-      <div className="bg-brand-primary text-white py-2 px-4 sm:px-6 lg:px-8 flex justify-between items-center text-[10px] sm:text-xs font-semibold">
-        <div className="flex items-center gap-4">
-          <span className="flex items-center gap-1"><Phone size={12} /> {settings.phone}</span>
-          <span className="hidden md:flex items-center gap-1"><Mail size={12} /> {settings.email}</span>
+      <header className="fixed top-0 left-0 right-0 z-50 w-full shadow-sm bg-white">
+        {/* Top Banner */}
+        <div className="bg-brand-primary text-white py-2 px-4 sm:px-6 lg:px-8 flex justify-between items-center text-[10px] sm:text-xs font-semibold whitespace-nowrap overflow-x-auto no-scrollbar">
+          <div className="flex items-center gap-4 flex-shrink-0">
+            <span className="flex items-center gap-1"><Phone size={12} /> {settings.phone}</span>
+            <span className="hidden md:flex items-center gap-1"><Mail size={12} /> {settings.email}</span>
+          </div>
+          <div className="flex gap-4 flex-shrink-0 ml-4">
+            <span 
+              className="cursor-pointer hover:underline"
+              onClick={() => !user && setIsLoginModalOpen(true)}
+            >
+              {user ? (user.displayName || user.email?.split('@')[0]) : 'My Account'}
+            </span>
+            <span className="cursor-pointer hover:underline">Order Tracking</span>
+          </div>
         </div>
-        <div className="flex gap-4">
-          <span 
-            className="cursor-pointer hover:underline"
-            onClick={() => !user && setIsLoginModalOpen(true)}
-          >
-            {user ? (user.displayName || user.email?.split('@')[0]) : 'My Account'}
-          </span>
-          <span className="cursor-pointer hover:underline">Order Tracking</span>
-        </div>
-      </div>
 
-      <nav className="sticky top-0 z-50 bg-white border-b border-gray-200">
+        <nav className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             <div className="flex items-center gap-4">
@@ -324,6 +325,8 @@ export default function Navbar({
         activeCategory={activeCategory}
         onCategoryChange={onCategoryChange}
       />
-    </>
-  );
+    </header>
+    <div className="h-[113px] sm:h-[113px]" />
+  </>
+);
 }
