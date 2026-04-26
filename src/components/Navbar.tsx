@@ -18,6 +18,7 @@ interface NavbarProps {
   onCategoryChange?: (id: string) => void;
   isMobileMenuOpen: boolean;
   setIsMobileMenuOpen: (open: boolean) => void;
+  onOpenSearch: () => void;
 }
 
 export default function Navbar({ 
@@ -26,7 +27,8 @@ export default function Navbar({
   activeCategory = 'all', 
   onCategoryChange = () => {},
   isMobileMenuOpen,
-  setIsMobileMenuOpen
+  setIsMobileMenuOpen,
+  onOpenSearch
 }: NavbarProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [suggestions, setSuggestions] = useState<any[]>([]);
@@ -125,33 +127,33 @@ export default function Navbar({
               </Link>
             </div>
 
-            <div className="flex-1 max-w-xl mx-4 lg:mx-8">
-              <form onSubmit={handleSearch} className="relative w-full" ref={searchRef}>
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onFocus={() => searchQuery.length > 1 && setShowSuggestions(true)}
-                  placeholder="Search products..."
-                  className="w-full bg-gray-100 border-none rounded-2xl py-2 px-4 pl-4 focus:ring-2 focus:ring-brand-primary outline-none text-xs transition-all"
-                />
-                <div className="absolute right-2 top-1 flex items-center gap-1">
-                  {searchQuery && (
+              <div className="flex-1 max-w-xl mx-4 lg:mx-8 hidden lg:block">
+                <form onSubmit={handleSearch} className="relative w-full" ref={searchRef}>
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onFocus={() => searchQuery.length > 1 && setShowSuggestions(true)}
+                    placeholder="Search products..."
+                    className="w-full bg-gray-100 border-none rounded-2xl py-2 px-4 pl-4 focus:ring-2 focus:ring-brand-primary outline-none text-xs text-gray-900 transition-all placeholder:text-gray-400"
+                  />
+                  <div className="absolute right-2 top-1 flex items-center gap-1">
+                    {searchQuery && (
+                      <button 
+                        type="button"
+                        onClick={() => setSearchQuery('')}
+                        className="p-1 text-gray-400 hover:text-gray-600"
+                      >
+                        <X size={14} />
+                      </button>
+                    )}
                     <button 
-                      type="button"
-                      onClick={() => setSearchQuery('')}
-                      className="p-1 text-gray-400 hover:text-gray-600"
+                      type="submit"
+                      className="bg-brand-primary p-1 rounded-lg hover:bg-opacity-90 transition-all"
                     >
-                      <X size={14} />
+                      <Search className="text-white" size={14} />
                     </button>
-                  )}
-                  <button 
-                    type="submit"
-                    className="bg-brand-primary p-1 rounded-lg hover:bg-opacity-90 transition-all"
-                  >
-                    <Search className="text-white" size={14} />
-                  </button>
-                </div>
+                  </div>
 
                 {/* Suggestions Dropdown */}
                 <AnimatePresence>
@@ -198,6 +200,13 @@ export default function Navbar({
             </div>
 
             <div className="flex items-center gap-2 sm:gap-6">
+              <button 
+                onClick={onOpenSearch}
+                className="lg:hidden w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 hover:text-brand-primary transition-all"
+              >
+                <Search size={20} />
+              </button>
+
               <Link 
                 to="/prompts"
                 className="hidden lg:flex items-center gap-2 bg-purple-50 hover:bg-purple-100 px-4 py-2 rounded-xl transition-all border border-purple-100 group"

@@ -81,7 +81,7 @@ export default function SearchOverlay({ isOpen, onClose, products }: SearchOverl
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch(query)}
                 placeholder="Search premium assets..."
-                className="w-full bg-gray-50 border-none rounded-xl py-3 pl-12 pr-4 text-sm font-bold focus:ring-2 focus:ring-brand-primary outline-none"
+                className="w-full bg-gray-50 border-none rounded-xl py-3 pl-12 pr-4 text-sm font-bold text-gray-900 focus:ring-2 focus:ring-brand-primary outline-none placeholder:text-gray-400"
               />
               <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
             </div>

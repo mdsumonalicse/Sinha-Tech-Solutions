@@ -184,6 +184,7 @@ function MainLayout({ children, categories, products, activeCategory, setActiveC
           onCategoryChange={setActiveCategory}
           isMobileMenuOpen={isMobileMenuOpen}
           setIsMobileMenuOpen={setIsMobileMenuOpen}
+          onOpenSearch={() => setIsSearchOverlayOpen(true)}
         />
       )}
       
