@@ -2133,6 +2133,7 @@ function PromptModal({ isOpen, onClose, editingPrompt }: { isOpen: boolean, onCl
         type: 'prompt',
         price: 0,
         updatedAt: serverTimestamp(),
+        createdAt: editingPrompt ? editingPrompt.createdAt : serverTimestamp(),
       };
 
       if (editingPrompt) {

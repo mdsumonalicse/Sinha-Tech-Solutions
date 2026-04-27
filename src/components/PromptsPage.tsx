@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { Copy, CheckCircle2, Search, Terminal, Sparkles, Share2, ArrowLeft, Eye } from 'lucide-react';
 
@@ -16,7 +16,11 @@ export default function PromptsPage() {
   const [isPageShared, setIsPageShared] = useState(false);
 
   useEffect(() => {
-    const q = query(collection(db, 'products'), where('type', '==', 'prompt'));
+    const q = query(
+      collection(db, 'products'), 
+      where('type', '==', 'prompt'),
+      orderBy('createdAt', 'desc')
+    );
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setPrompts(data);
@@ -214,7 +218,7 @@ export default function PromptsPage() {
                 className="bg-white rounded-3xl overflow-hidden border border-gray-100 hover:shadow-2xl hover:shadow-purple-100 transition-all group flex flex-col"
               >
                 <div 
-                  className="aspect-[4/3] relative overflow-hidden bg-gray-50 border-b border-gray-50 cursor-pointer"
+                  className="aspect-[2/3] relative overflow-hidden bg-gray-50 border-b border-gray-50 cursor-pointer"
                   onClick={() => navigate(`/prompts/${prompt.id}`)}
                 >
                   <img 
@@ -235,43 +239,37 @@ export default function PromptsPage() {
                   </div>
                 </div>
                 
-                <div className="p-6 flex flex-col flex-1">
-                  <h3 
-                    className="text-sm font-black text-gray-900 uppercase tracking-tighter mb-4 line-clamp-1 cursor-pointer hover:text-brand-primary transition-colors"
-                    onClick={() => navigate(`/prompts/${prompt.id}`)}
-                  >
-                    {prompt.name}
-                  </h3>
-                  
-                  <div className="bg-gray-50 rounded-xl p-4 mb-6 relative group/box">
-                    <pre className="text-[10px] font-bold text-gray-500 uppercase whitespace-pre-wrap line-clamp-2 leading-relaxed">
-                      {prompt.prompt}
-                    </pre>
-                  </div>
-
-                  <div className="flex gap-2">
+                <div className="p-4 flex flex-col flex-1">
+                  <div className="flex items-center gap-3 mt-auto">
+                    <h3 
+                      className="text-xs font-black text-gray-900 tracking-tighter cursor-pointer hover:text-brand-primary transition-colors shrink-0"
+                      onClick={() => navigate(`/prompts/${prompt.id}`)}
+                    >
+                      {prompt.name}
+                    </h3>
+                    
+                    <div className="flex-1 flex gap-1.5 justify-end">
                     <button 
                       onClick={() => navigate(`/prompts/${prompt.id}`)}
-                      className="p-4 rounded-xl bg-purple-50 text-purple-600 hover:bg-purple-100 transition-all flex items-center justify-center border border-purple-100"
-                      title="View Details"
+                      className="p-2.5 rounded-lg bg-purple-50 text-purple-600 hover:bg-purple-100 transition-all flex items-center justify-center border border-purple-100"
                     >
-                      <Eye size={14} />
+                      <Eye size={12} />
                     </button>
                     <button 
                       onClick={(e) => {
                         e.stopPropagation();
                         handleCopy(prompt.id, prompt.prompt);
                       }}
-                      className={`flex-1 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${
+                      className={`px-3 py-2.5 rounded-lg font-black text-[9px] uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 ${
                         copiedId === prompt.id 
                           ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-200' 
-                          : 'bg-gray-900 text-white hover:bg-purple-600 shadow-xl shadow-gray-200'
+                          : 'bg-gray-900 text-white hover:bg-gray-800'
                       }`}
                     >
                       {copiedId === prompt.id ? (
-                        <>COPIED <CheckCircle2 size={14} /></>
+                        <>COPIED <CheckCircle2 size={12} /></>
                       ) : (
-                        <>COPY <Copy size={14} /></>
+                        <>COPY <Copy size={12} /></>
                       )}
                     </button>
                     <button 
@@ -279,16 +277,17 @@ export default function PromptsPage() {
                         e.stopPropagation();
                         handleShare(prompt);
                       }}
-                      className={`p-4 rounded-xl transition-all flex items-center justify-center ${
+                      className={`p-2.5 rounded-lg transition-all flex items-center justify-center ${
                         sharedId === prompt.id 
                           ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' 
-                          : 'bg-white text-gray-400 hover:text-gray-900 border border-gray-100 hover:border-gray-200'
+                          : 'bg-white text-gray-400 border border-gray-100 hover:border-gray-900 hover:text-gray-900'
                       }`}
                     >
-                      {sharedId === prompt.id ? <CheckCircle2 size={14} /> : <Share2 size={14} />}
+                      <Share2 size={12} />
                     </button>
                   </div>
                 </div>
+              </div>
               </motion.div>
             ))}
           </div>
