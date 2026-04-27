@@ -30,7 +30,7 @@ service cloud.firestore {
              data.name is string && data.name.size() <= 200 &&
              data.price is number && data.price >= 0 &&
              data.category is string &&
-             data.image is string && data.image.size() <= 1000;
+             data.image is string && data.image.size() <= 1000000;
     }
 
     function isValidCategory(data) {

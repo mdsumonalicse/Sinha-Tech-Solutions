@@ -1988,7 +1988,13 @@ function PromptsTab({ onEdit }: { onEdit: (prompt: any) => void }) {
   useEffect(() => {
     const q = query(collection(db, 'products'), where('type', '==', 'prompt'));
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map(doc => ({ docId: doc.id, ...doc.data() }));
+      const data = snapshot.docs.map(doc => ({ docId: doc.id, ...doc.data() as any }));
+      // In-memory sort by createdAt desc
+      data.sort((a, b) => {
+        const dateA = a.createdAt?.seconds || a.createdAt?._seconds || 0;
+        const dateB = b.createdAt?.seconds || b.createdAt?._seconds || 0;
+        return dateB - dateA;
+      });
       setPrompts(data);
       setLoading(false);
     });
@@ -2078,7 +2084,6 @@ function PromptModal({ isOpen, onClose, editingPrompt }: { isOpen: boolean, onCl
   });
   const [loading, setLoading] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (editingPrompt) {
@@ -2100,19 +2105,6 @@ function PromptModal({ isOpen, onClose, editingPrompt }: { isOpen: boolean, onCl
     }
   }, [editingPrompt]);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64 = reader.result as string;
-        setPreviewImage(base64);
-        setFormData(prev => ({ ...prev, image: base64 }));
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -2133,11 +2125,14 @@ function PromptModal({ isOpen, onClose, editingPrompt }: { isOpen: boolean, onCl
         type: 'prompt',
         price: 0,
         updatedAt: serverTimestamp(),
-        createdAt: editingPrompt ? editingPrompt.createdAt : serverTimestamp(),
       };
 
       if (editingPrompt) {
-        await updateDoc(doc(db, 'products', editingPrompt.docId), data);
+        await updateDoc(doc(db, 'products', editingPrompt.docId), {
+          ...data,
+          // Keep original createdAt if it exists
+          createdAt: editingPrompt.createdAt || serverTimestamp()
+        });
       } else {
         await addDoc(collection(db, 'products'), {
           ...data,
@@ -2146,7 +2141,8 @@ function PromptModal({ isOpen, onClose, editingPrompt }: { isOpen: boolean, onCl
       }
       onClose();
     } catch (error: any) {
-      handleFirestoreError(error, editingPrompt ? OperationType.UPDATE : OperationType.CREATE, 'products');
+      console.error('Error saving prompt:', error);
+      alert('Error saving prompt: ' + error.message);
     } finally {
       setLoading(false);
     }
@@ -2172,62 +2168,27 @@ function PromptModal({ isOpen, onClose, editingPrompt }: { isOpen: boolean, onCl
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-6">
-                <input 
-                  type="file" 
-                  ref={fileInputRef} 
-                  className="hidden" 
-                  accept="image/*" 
-                  onChange={handleFileChange}
-                />
-
-                <div className="space-y-1.5 text-center">
-                  {previewImage ? (
-                    <div className="relative group mx-auto w-full aspect-video rounded-2xl overflow-hidden border-2 border-gray-100 shadow-inner bg-gray-50 mb-4">
-                      <img 
-                        src={previewImage} 
-                        className="w-full h-full object-cover" 
-                        alt="Preview" 
-                      />
-                      <button 
-                        type="button"
-                        onClick={() => fileInputRef.current?.click()}
-                        className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center gap-2 text-white font-black text-[10px] uppercase tracking-widest"
-                      >
-                        <Upload size={16} /> CHANGE IMAGE
-                      </button>
-                    </div>
-                  ) : (
-                    <div 
-                      onClick={() => fileInputRef.current?.click()}
-                      className="w-full aspect-video rounded-2xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-3 text-gray-400 hover:border-purple-300 hover:text-purple-500 cursor-pointer transition-all bg-gray-50 mb-4"
-                    >
-                      <ImageIcon size={32} />
-                      <span className="text-[10px] font-black uppercase tracking-widest">Select Prompt Image</span>
-                    </div>
-                  )}
-                </div>
+                {previewImage && (
+                  <div className="relative mx-auto w-full aspect-video rounded-2xl overflow-hidden border-2 border-gray-100 shadow-inner bg-gray-50 mb-4">
+                    <img 
+                      src={previewImage} 
+                      className="w-full h-full object-cover" 
+                      alt="Preview" 
+                    />
+                  </div>
+                )}
 
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-2">Image Reference URL</label>
-                  <div className="flex gap-2">
-                    <input 
-                      value={formData.image} 
-                      onChange={(e) => {
-                        setFormData({...formData, image: e.target.value});
-                        setPreviewImage(e.target.value);
-                      }} 
-                      placeholder="HTTPS://IMAGE-LINK.PNG" 
-                      className="flex-1 bg-gray-50 border-none rounded-2xl py-5 px-8 text-xs font-black outline-none focus:ring-2 focus:ring-purple-500/10 transition-all" 
-                    />
-                    <button 
-                      type="button"
-                      onClick={() => fileInputRef.current?.click()}
-                      className="px-6 bg-gray-900 text-white rounded-2xl hover:bg-gray-800 transition-all flex items-center justify-center"
-                      title="Upload from Gallery"
-                    >
-                      <ImageIcon size={18} />
-                    </button>
-                  </div>
+                  <input 
+                    value={formData.image} 
+                    onChange={(e) => {
+                      setFormData({...formData, image: e.target.value});
+                      setPreviewImage(e.target.value);
+                    }} 
+                    placeholder="HTTPS://IMAGE-LINK.PNG" 
+                    className="w-full bg-gray-50 border-none rounded-2xl py-5 px-8 text-xs font-black outline-none focus:ring-2 focus:ring-purple-500/10 transition-all" 
+                  />
                 </div>
 
                 <div className="space-y-1.5">

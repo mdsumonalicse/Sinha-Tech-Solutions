@@ -24,7 +24,7 @@ export default function CategoryBar({ activeCategory, onCategoryChange, categori
   };
 
   return (
-    <div className="bg-white border-b border-gray-200 py-3 overflow-x-auto scrollbar-hide sticky top-20 z-40">
+    <div className="bg-white border-b border-gray-200 py-3 overflow-x-auto scrollbar-hide sticky top-[113px] z-40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-8 min-w-max">
           <button

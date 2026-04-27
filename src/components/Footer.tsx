@@ -14,7 +14,7 @@ export default function Footer() {
             <Link to="/" className="flex items-center gap-3">
               <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center p-1.5 shadow-lg shadow-white/5">
                 <img 
-                  src="https://i.postimg.cc/CKp5SGF3/backgrounderaser-1777119211.png" 
+                  src="https://i.postimg.cc/7hZRv2qc/backgrounderaser-1777268520.png" 
                   alt="Logo" 
                   className="w-full h-full object-contain"
                 />

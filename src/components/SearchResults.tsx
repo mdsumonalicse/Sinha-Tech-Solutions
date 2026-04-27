@@ -110,7 +110,7 @@ export default function SearchResults({ products = [] }: { products?: any[] }) {
       <div className="grid grid-cols-12 gap-8">
         {/* Filters Sidebar */}
         <div className={`col-span-12 lg:col-span-3 space-y-8 ${isFilterOpen ? 'block' : 'hidden lg:block'}`}>
-          <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm sticky top-24">
+          <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm sticky top-[132px]">
             <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-50">
                 <h3 className="text-xs font-black text-gray-900 uppercase tracking-widest flex items-center gap-2">
                     <SlidersHorizontal size={16} className="text-brand-primary" />

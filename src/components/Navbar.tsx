@@ -117,17 +117,13 @@ export default function Navbar({
                     referrerPolicy="no-referrer"
                   />
                 </div>
-                <div className="flex flex-col">
-                  <span className="text-xl sm:text-3xl font-black text-gray-900 tracking-[-0.04em] leading-none uppercase whitespace-nowrap font-display italic">
-                    {settings.siteName}
-                  </span>
-                  <div className="flex items-center gap-2 mt-1.5 overflow-hidden">
-                    <div className="h-[2px] w-4 bg-brand-primary rounded-full shrink-0" />
-                    <span className="text-[7px] sm:text-[9px] text-brand-primary font-black uppercase tracking-[0.3em] whitespace-nowrap opacity-80">
-                      Premium Digital Solutions
-                    </span>
-                    <div className="h-[2px] flex-1 bg-brand-primary/10 rounded-full" />
-                  </div>
+                <div className="h-10 sm:h-16 flex items-center ml-2 border-l border-gray-100 pl-4">
+                  <img 
+                    src="https://i.postimg.cc/7hZRv2qc/backgrounderaser-1777268520.png" 
+                    alt={settings.siteName}
+                    className="h-full w-auto object-contain"
+                    referrerPolicy="no-referrer"
+                  />
                 </div>
               </Link>
             </div>
