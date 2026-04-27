@@ -150,7 +150,14 @@ function Home({ activeCategory, setActiveCategory, categories, products, loading
             className="mt-12 bg-white rounded-3xl border border-gray-100 p-8 lg:p-12 flex flex-col md:flex-row items-center gap-8 shadow-sm"
           >
             <div className="flex-1 text-center md:text-left">
-              <h3 className="text-2xl font-black text-gray-900 mb-4 tracking-tighter uppercase whitespace-normal">WHY CHOOSE SINHA TECH SOLUTIONS?</h3>
+              <div className="mb-6">
+                <span className="text-[10px] font-black text-brand-primary uppercase tracking-[0.4em]">Why Trust</span>
+                <div className="flex flex-col mt-2">
+                  <span className="font-display font-black text-2xl sm:text-3xl text-gray-900 leading-none tracking-tighter whitespace-nowrap">
+                    SINHA <span className="text-gray-400 font-bold text-xs sm:text-sm tracking-widest ml-2">TECH SOLUTIONS</span>
+                  </span>
+                </div>
+              </div>
               <p className="text-sm text-gray-500 font-medium leading-relaxed">
                 We are Bangladesh's leading provider of genuine software keys. With over 10,000+ satisfied customers, we guarantee 100% official activation and lifetime support on all our digital products.
               </p>

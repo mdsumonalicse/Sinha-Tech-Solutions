@@ -11,16 +11,9 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 pb-16 border-b border-gray-800">
           <div className="space-y-6">
-            <Link to="/" className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center p-1.5 shadow-lg shadow-white/5">
-                <img 
-                  src="https://i.postimg.cc/7hZRv2qc/backgrounderaser-1777268520.png" 
-                  alt="Logo" 
-                  className="w-full h-full object-contain"
-                />
-              </div>
-              <span className="text-xl font-black text-white tracking-tighter uppercase whitespace-nowrap">
-                {settings.siteName}
+            <Link to="/" className="flex flex-col items-start justify-center group">
+              <span className="font-display font-black text-xl tracking-tighter leading-none text-white transition-colors group-hover:text-brand-primary whitespace-nowrap">
+                SINHA <span className="text-gray-500 font-bold text-xs tracking-widest ml-1">TECH SOLUTIONS</span>
               </span>
             </Link>
             <p className="text-sm leading-relaxed max-w-xs font-medium opacity-80 uppercase tracking-tight">

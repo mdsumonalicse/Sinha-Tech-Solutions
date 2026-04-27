@@ -147,8 +147,13 @@ export default function PromptsPage() {
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex items-center justify-center gap-3 mb-6"
+            className="flex flex-col items-center justify-center gap-3 mb-6"
           >
+            <div className="flex flex-col items-center text-center mb-8">
+              <span className="font-display font-black text-3xl sm:text-5xl text-gray-900 leading-none tracking-tighter whitespace-nowrap">
+                SINHA <span className="text-purple-600 font-bold text-base sm:text-lg tracking-[0.3em] ml-2">TECH SOLUTIONS</span>
+              </span>
+            </div>
             <div className="p-3 bg-purple-50 rounded-2xl text-purple-600">
               <Sparkles size={32} />
             </div>

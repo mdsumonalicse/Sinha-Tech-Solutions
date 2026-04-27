@@ -108,22 +108,20 @@ export default function Navbar({
               >
                 <Menu size={24} />
               </button>
-              <Link to="/" className="flex items-center gap-2 sm:gap-3">
-                <div className="w-12 h-12 sm:w-28 sm:h-28 flex items-center justify-center drop-shadow-lg">
+              <Link to="/" className="flex items-center gap-3 group">
+                <div className="w-10 h-10 sm:w-16 sm:h-16 flex items-center justify-center drop-shadow-sm">
                   <img 
                     src="https://i.postimg.cc/CKp5SGF3/backgrounderaser-1777119211.png" 
                     alt="Sinha Tech Solutions Logo" 
-                    className="h-full w-full object-contain transition-transform hover:scale-105"
+                    className="h-full w-full object-contain transition-transform group-hover:scale-105"
                     referrerPolicy="no-referrer"
                   />
                 </div>
-                <div className="h-10 sm:h-16 flex items-center ml-2 border-l border-gray-100 pl-4">
-                  <img 
-                    src="https://i.postimg.cc/7hZRv2qc/backgrounderaser-1777268520.png" 
-                    alt={settings.siteName}
-                    className="h-full w-auto object-contain"
-                    referrerPolicy="no-referrer"
-                  />
+                <div className="flex flex-col items-start justify-center border-l border-gray-100 pl-3">
+                  <span className="font-display font-black text-xl sm:text-2xl tracking-tighter leading-none text-gray-900 group-hover:text-brand-primary transition-colors whitespace-nowrap">
+                    SINHA <span className="text-gray-400">TECH SOLUTIONS</span>
+                  </span>
+                  <div className="h-[2px] w-full bg-brand-primary mt-1 scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
                 </div>
               </Link>
             </div>

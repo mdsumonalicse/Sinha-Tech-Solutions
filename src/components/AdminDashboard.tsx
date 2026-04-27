@@ -255,7 +255,10 @@ export default function AdminDashboard() {
             <div className="w-8 h-8 bg-brand-primary rounded-lg flex items-center justify-center text-white shadow-lg shadow-brand-primary/20">
               <Package size={18} />
             </div>
-            <span className="text-base font-black text-gray-900 tracking-tighter uppercase leading-none">STS ADMIN</span>
+            <div className="flex flex-col">
+              <span className="font-display font-black text-sm text-gray-900 leading-none">SINHA</span>
+              <span className="font-display font-bold text-[7px] tracking-[0.1em] uppercase text-brand-primary">Admin</span>
+            </div>
           </div>
         </div>
         <button 
@@ -290,8 +293,8 @@ export default function AdminDashboard() {
               <Package size={24} />
             </div>
             <div className="flex flex-col">
-              <span className="text-xl font-black text-gray-900 tracking-tighter uppercase leading-none">STS ADMIN</span>
-              <span className="text-[10px] text-brand-primary font-black uppercase tracking-[0.2em] mt-1">Control Panel</span>
+              <span className="font-display font-black text-xl text-gray-900 tracking-tighter uppercase leading-none">SINHA</span>
+              <span className="font-display font-bold text-[10px] text-brand-primary font-black uppercase tracking-[0.2em] mt-1">Admin Panel</span>
             </div>
           </div>
         </div>
@@ -2160,9 +2163,10 @@ function PromptModal({ isOpen, onClose, editingPrompt }: { isOpen: boolean, onCl
                   <h2 className="text-2xl font-black text-gray-900 uppercase tracking-tighter font-display italic">
                     {editingPrompt ? 'Update' : 'Deploy'} AI Prompt
                   </h2>
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mt-1 opacity-60">
-                    Sinha Tech Prompt Library
-                  </p>
+                  <div className="flex flex-col mt-1">
+                    <span className="font-display font-black text-xl text-gray-900 leading-none">SINHA</span>
+                    <span className="font-display font-bold text-[8px] tracking-[0.3em] uppercase text-gray-400 mt-1">Tech Solutions</span>
+                  </div>
                 </div>
                 <button onClick={onClose} className="p-3 bg-gray-50 rounded-2xl text-gray-400 hover:text-gray-900 transition-all"><X size={20} /></button>
               </div>
