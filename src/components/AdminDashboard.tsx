@@ -32,7 +32,9 @@ import {
   CreditCard,
   Terminal,
   Sparkles,
-  ArrowLeft
+  ArrowLeft,
+  Image as ImageIcon,
+  Upload
 } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
 import { auth, db } from '../lib/firebase';
@@ -2075,6 +2077,8 @@ function PromptModal({ isOpen, onClose, editingPrompt }: { isOpen: boolean, onCl
     category: 'AI Prompts'
   });
   const [loading, setLoading] = useState(false);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (editingPrompt) {
@@ -2084,6 +2088,7 @@ function PromptModal({ isOpen, onClose, editingPrompt }: { isOpen: boolean, onCl
         prompt: editingPrompt.prompt || '',
         category: editingPrompt.category || 'AI Prompts'
       });
+      setPreviewImage(editingPrompt.image || null);
     } else {
       setFormData({
         name: '',
@@ -2091,15 +2096,40 @@ function PromptModal({ isOpen, onClose, editingPrompt }: { isOpen: boolean, onCl
         prompt: '',
         category: 'AI Prompts'
       });
+      setPreviewImage(null);
     }
   }, [editingPrompt]);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64 = reader.result as string;
+        setPreviewImage(base64);
+        setFormData(prev => ({ ...prev, image: base64 }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
+      let finalName = formData.name;
+      
+      // Auto-generate name if it's a new prompt
+      if (!editingPrompt) {
+        const q = query(collection(db, 'products'), where('type', '==', 'prompt'));
+        const snapshot = await getDocs(q);
+        const count = snapshot.size;
+        finalName = `2026-${count + 1}`;
+      }
+
       const data = {
         ...formData,
+        name: finalName,
         type: 'prompt',
         price: 0,
         updatedAt: serverTimestamp(),
@@ -2126,7 +2156,7 @@ function PromptModal({ isOpen, onClose, editingPrompt }: { isOpen: boolean, onCl
       {isOpen && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="fixed inset-0 bg-black/80 backdrop-blur-md" />
-          <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-white w-full max-w-xl rounded-[2.5rem] overflow-hidden relative z-10">
+          <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-white w-full max-w-xl rounded-[2.5rem] overflow-hidden relative z-10 max-h-[90vh] overflow-y-auto">
             <div className="p-8">
               <div className="flex justify-between items-center mb-8">
                 <div>
@@ -2137,14 +2167,62 @@ function PromptModal({ isOpen, onClose, editingPrompt }: { isOpen: boolean, onCl
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-2">Prompt Name / Idea</label>
-                  <input required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} placeholder="E.G. CYBERPUNK CITYSCAPE" className="w-full bg-gray-50 border-none rounded-2xl py-5 px-8 text-xs font-black outline-none focus:ring-2 focus:ring-purple-500/10 transition-all" />
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  className="hidden" 
+                  accept="image/*" 
+                  onChange={handleFileChange}
+                />
+
+                <div className="space-y-1.5 text-center">
+                  {previewImage ? (
+                    <div className="relative group mx-auto w-full aspect-video rounded-2xl overflow-hidden border-2 border-gray-100 shadow-inner bg-gray-50 mb-4">
+                      <img 
+                        src={previewImage} 
+                        className="w-full h-full object-cover" 
+                        alt="Preview" 
+                      />
+                      <button 
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center gap-2 text-white font-black text-[10px] uppercase tracking-widest"
+                      >
+                        <Upload size={16} /> CHANGE IMAGE
+                      </button>
+                    </div>
+                  ) : (
+                    <div 
+                      onClick={() => fileInputRef.current?.click()}
+                      className="w-full aspect-video rounded-2xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-3 text-gray-400 hover:border-purple-300 hover:text-purple-500 cursor-pointer transition-all bg-gray-50 mb-4"
+                    >
+                      <ImageIcon size={32} />
+                      <span className="text-[10px] font-black uppercase tracking-widest">Select Prompt Image</span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-2">Image Reference URL</label>
-                  <input required value={formData.image} onChange={(e) => setFormData({...formData, image: e.target.value})} placeholder="HTTPS://IMAGE-LINK.PNG" className="w-full bg-gray-50 border-none rounded-2xl py-5 px-8 text-xs font-black outline-none focus:ring-2 focus:ring-purple-500/10 transition-all" />
+                  <div className="flex gap-2">
+                    <input 
+                      value={formData.image} 
+                      onChange={(e) => {
+                        setFormData({...formData, image: e.target.value});
+                        setPreviewImage(e.target.value);
+                      }} 
+                      placeholder="HTTPS://IMAGE-LINK.PNG" 
+                      className="flex-1 bg-gray-50 border-none rounded-2xl py-5 px-8 text-xs font-black outline-none focus:ring-2 focus:ring-purple-500/10 transition-all" 
+                    />
+                    <button 
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="px-6 bg-gray-900 text-white rounded-2xl hover:bg-gray-800 transition-all flex items-center justify-center"
+                      title="Upload from Gallery"
+                    >
+                      <ImageIcon size={18} />
+                    </button>
+                  </div>
                 </div>
 
                 <div className="space-y-1.5">
@@ -2152,8 +2230,14 @@ function PromptModal({ isOpen, onClose, editingPrompt }: { isOpen: boolean, onCl
                   <textarea required rows={6} value={formData.prompt} onChange={(e) => setFormData({...formData, prompt: e.target.value})} placeholder="PASTE SYSTEM PROMPT HERE..." className="w-full bg-gray-50 border-none rounded-2xl py-5 px-8 text-xs font-bold transition-all outline-none focus:ring-2 focus:ring-purple-500/10 resize-none uppercase" />
                 </div>
 
-                <button type="submit" disabled={loading} className="w-full py-6 bg-purple-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all">
-                  {loading ? 'Processing...' : (editingPrompt ? 'Update Prompt' : 'Create Prompt')}
+                <button type="submit" disabled={loading} className="w-full py-6 bg-purple-600 text-white rounded-[1.5rem] font-black text-xs uppercase tracking-[0.2em] shadow-xl shadow-purple-200 hover:scale-[1.01] active:scale-[0.98] transition-all flex items-center justify-center gap-3">
+                  {loading ? (
+                    <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      {editingPrompt ? 'Update System' : 'Deploy Prompt'} <Save size={18} />
+                    </>
+                  )}
                 </button>
               </form>
             </div>

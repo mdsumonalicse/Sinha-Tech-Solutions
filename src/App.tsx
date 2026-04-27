@@ -11,6 +11,7 @@ import SearchResults from './components/SearchResults';
 import AdminDashboard from './components/AdminDashboard';
 import Hero from './components/Hero';
 import PromptsPage from './components/PromptsPage';
+import PromptDetailPage from './components/PromptDetailPage';
 import { AuthProvider } from './lib/AuthContext';
 import { PRODUCTS, CATEGORIES } from './constants';
 import * as LucideIcons from 'lucide-react';
@@ -298,6 +299,7 @@ export default function App() {
             } />
             <Route path="/product/:productId" element={<ProductDetail />} />
             <Route path="/prompts" element={<PromptsPage />} />
+            <Route path="/prompts/:promptId" element={<PromptDetailPage />} />
             <Route path="/search" element={<SearchResults products={products} />} />
             <Route 
               path="/admin" 

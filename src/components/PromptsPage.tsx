@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../lib/firebase';
-import { Copy, CheckCircle2, Search, Terminal, Sparkles, Share2, ArrowLeft } from 'lucide-react';
+import { Copy, CheckCircle2, Search, Terminal, Sparkles, Share2, ArrowLeft, Eye } from 'lucide-react';
 
 export default function PromptsPage() {
+  const navigate = useNavigate();
   const [prompts, setPrompts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -92,7 +94,7 @@ export default function PromptsPage() {
   };
 
   const handleShare = async (prompt: any) => {
-    const url = `${window.location.origin}/prompts#${prompt.id}`;
+    const url = `${window.location.origin}/prompts/${prompt.id}`;
     
     if (navigator.share) {
       try {
@@ -211,7 +213,10 @@ export default function PromptsPage() {
                 animate={{ opacity: 1, scale: 1 }}
                 className="bg-white rounded-3xl overflow-hidden border border-gray-100 hover:shadow-2xl hover:shadow-purple-100 transition-all group flex flex-col"
               >
-                <div className="aspect-[4/3] relative overflow-hidden bg-gray-50 border-b border-gray-50">
+                <div 
+                  className="aspect-[4/3] relative overflow-hidden bg-gray-50 border-b border-gray-50 cursor-pointer"
+                  onClick={() => navigate(`/prompts/${prompt.id}`)}
+                >
                   <img 
                     src={prompt.image} 
                     alt={prompt.name} 
@@ -231,19 +236,32 @@ export default function PromptsPage() {
                 </div>
                 
                 <div className="p-6 flex flex-col flex-1">
-                  <h3 className="text-sm font-black text-gray-900 uppercase tracking-tighter mb-4 line-clamp-1">
+                  <h3 
+                    className="text-sm font-black text-gray-900 uppercase tracking-tighter mb-4 line-clamp-1 cursor-pointer hover:text-brand-primary transition-colors"
+                    onClick={() => navigate(`/prompts/${prompt.id}`)}
+                  >
                     {prompt.name}
                   </h3>
                   
                   <div className="bg-gray-50 rounded-xl p-4 mb-6 relative group/box">
-                    <pre className="text-[10px] font-bold text-gray-500 uppercase whitespace-pre-wrap line-clamp-3 leading-relaxed">
+                    <pre className="text-[10px] font-bold text-gray-500 uppercase whitespace-pre-wrap line-clamp-2 leading-relaxed">
                       {prompt.prompt}
                     </pre>
                   </div>
 
                   <div className="flex gap-2">
                     <button 
-                      onClick={() => handleCopy(prompt.id, prompt.prompt)}
+                      onClick={() => navigate(`/prompts/${prompt.id}`)}
+                      className="p-4 rounded-xl bg-purple-50 text-purple-600 hover:bg-purple-100 transition-all flex items-center justify-center border border-purple-100"
+                      title="View Details"
+                    >
+                      <Eye size={14} />
+                    </button>
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleCopy(prompt.id, prompt.prompt);
+                      }}
                       className={`flex-1 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${
                         copiedId === prompt.id 
                           ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-200' 
@@ -257,7 +275,10 @@ export default function PromptsPage() {
                       )}
                     </button>
                     <button 
-                      onClick={() => handleShare(prompt)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleShare(prompt);
+                      }}
                       className={`p-4 rounded-xl transition-all flex items-center justify-center ${
                         sharedId === prompt.id 
                           ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' 
