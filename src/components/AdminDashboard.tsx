@@ -2161,8 +2161,12 @@ function PromptModal({ isOpen, onClose, editingPrompt }: { isOpen: boolean, onCl
             <div className="p-8">
               <div className="flex justify-between items-center mb-8">
                 <div>
-                  <h3 className="text-2xl font-black text-gray-900 uppercase tracking-tighter">{editingPrompt ? 'Edit' : 'Add'} AI Prompt</h3>
-                  <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Prompt Library Management</p>
+                  <h2 className="text-2xl font-black text-gray-900 uppercase tracking-tighter font-display italic">
+                    {editingPrompt ? 'Update' : 'Deploy'} AI Prompt
+                  </h2>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mt-1 opacity-60">
+                    Sinha Tech Prompt Library
+                  </p>
                 </div>
                 <button onClick={onClose} className="p-3 bg-gray-50 rounded-2xl text-gray-400 hover:text-gray-900 transition-all"><X size={20} /></button>
               </div>

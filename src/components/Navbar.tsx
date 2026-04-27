@@ -118,12 +118,16 @@ export default function Navbar({
                   />
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-lg sm:text-2xl font-black text-gray-900 tracking-tighter leading-none uppercase whitespace-nowrap">
+                  <span className="text-xl sm:text-3xl font-black text-gray-900 tracking-[-0.04em] leading-none uppercase whitespace-nowrap font-display italic">
                     {settings.siteName}
                   </span>
-                  <span className="text-[8px] sm:text-[10px] text-brand-primary font-bold uppercase tracking-widest mt-1 whitespace-nowrap">
-                    Premium Digital Solutions
-                  </span>
+                  <div className="flex items-center gap-2 mt-1.5 overflow-hidden">
+                    <div className="h-[2px] w-4 bg-brand-primary rounded-full shrink-0" />
+                    <span className="text-[7px] sm:text-[9px] text-brand-primary font-black uppercase tracking-[0.3em] whitespace-nowrap opacity-80">
+                      Premium Digital Solutions
+                    </span>
+                    <div className="h-[2px] flex-1 bg-brand-primary/10 rounded-full" />
+                  </div>
                 </div>
               </Link>
             </div>

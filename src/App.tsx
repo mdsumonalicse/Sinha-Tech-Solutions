@@ -239,9 +239,15 @@ export default function App() {
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
-    const qProds = query(collection(db, 'products'), orderBy('createdAt', 'desc'));
+    const qProds = query(collection(db, 'products'));
     const unsubProds = onSnapshot(qProds, (snapshot) => {
-      const prods = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const prods = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as any }));
+      // In-memory sort by createdAt desc
+      prods.sort((a, b) => {
+        const dateA = a.createdAt?.seconds || a.createdAt?._seconds || 0;
+        const dateB = b.createdAt?.seconds || b.createdAt?._seconds || 0;
+        return dateB - dateA;
+      });
       setProducts(prods);
     });
 

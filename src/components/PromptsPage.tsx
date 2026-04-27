@@ -18,11 +18,16 @@ export default function PromptsPage() {
   useEffect(() => {
     const q = query(
       collection(db, 'products'), 
-      where('type', '==', 'prompt'),
-      orderBy('createdAt', 'desc')
+      where('type', '==', 'prompt')
     );
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as any }));
+      // In-memory sort by createdAt desc
+      data.sort((a, b) => {
+        const dateA = a.createdAt?.seconds || a.createdAt?._seconds || 0;
+        const dateB = b.createdAt?.seconds || b.createdAt?._seconds || 0;
+        return dateB - dateA;
+      });
       setPrompts(data);
       setLoading(false);
     });
