@@ -6,6 +6,8 @@ import { useSettings } from '../lib/useSettings';
 export default function Hero() {
   const { settings } = useSettings();
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [direction, setDirection] = useState(0); // 1 for right, -1 for left
+
   const banners = settings.banners && settings.banners.length > 0 
     ? settings.banners 
     : ['https://images.unsplash.com/photo-1611162617474-5b21e879e113?q=80&w=2574&auto=format&fit=crop'];
@@ -13,25 +15,53 @@ export default function Hero() {
   useEffect(() => {
     if (banners.length <= 1) return;
     const timer = setInterval(() => {
+      setDirection(1);
       setCurrentIndex((prev) => (prev + 1) % banners.length);
-    }, 5000);
+    }, 6000);
     return () => clearInterval(timer);
   }, [banners.length]);
 
-  const next = () => setCurrentIndex((prev) => (prev + 1) % banners.length);
-  const prev = () => setCurrentIndex((prev) => (prev - 1 + banners.length) % banners.length);
+  const next = () => {
+    setDirection(1);
+    setCurrentIndex((prev) => (prev + 1) % banners.length);
+  };
+
+  const prev = () => {
+    setDirection(-1);
+    setCurrentIndex((prev) => (prev - 1 + banners.length) % banners.length);
+  };
+
+  const slideVariants = {
+    enter: (direction: number) => ({
+      x: direction > 0 ? '100%' : '-100%',
+      opacity: 0
+    }),
+    center: {
+      x: 0,
+      opacity: 1
+    },
+    exit: (direction: number) => ({
+      x: direction < 0 ? '100%' : '-100%',
+      opacity: 0
+    })
+  };
 
   return (
     <section className="relative lg:py-12">
       <div className="max-w-7xl mx-auto px-0 sm:px-6 lg:px-8">
         <div className="relative overflow-hidden aspect-video sm:aspect-auto sm:min-h-[500px] lg:min-h-[450px] lg:rounded-[2rem]">
-          <AnimatePresence mode="wait">
+          <AnimatePresence mode="popLayout" custom={direction}>
             <motion.div
               key={currentIndex}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 1 }}
+              custom={direction}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ 
+                x: { type: "spring", stiffness: 300, damping: 30 },
+                opacity: { duration: 0.2 }
+              }}
               className="absolute inset-0 z-0"
             >
               <img 
@@ -45,10 +75,10 @@ export default function Hero() {
 
           <div className="relative z-10 p-4 sm:p-8 lg:p-16 h-full flex flex-col justify-end lg:justify-center aspect-video sm:aspect-auto sm:min-h-[500px] lg:min-h-[450px]">
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, x: direction > 0 ? 50 : -50 }}
+              animate={{ opacity: 1, x: 0 }}
               key={`content-${currentIndex}`}
-              transition={{ duration: 0.6 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
               className="max-w-2xl pb-4 lg:pb-0"
             >
               <div className="inline-flex items-center gap-2 px-2 py-0.5 bg-brand-primary/20 text-brand-primary border border-brand-primary/30 rounded-full text-[7px] sm:text-[10px] font-bold uppercase tracking-wider mb-3 sm:mb-6">
@@ -99,8 +129,11 @@ export default function Hero() {
                 {banners.map((_, i) => (
                   <button 
                     key={i}
-                    onClick={() => setCurrentIndex(i)}
-                    className={`h-1 rounded-full transition-all duration-300 ${i === currentIndex ? 'w-8 bg-brand-primary' : 'w-2 bg-white/30'}`}
+                    onClick={() => {
+                      setDirection(i > currentIndex ? 1 : -1);
+                      setCurrentIndex(i);
+                    }}
+                    className={`h-1.5 rounded-full transition-all duration-300 ${i === currentIndex ? 'w-10 bg-brand-primary' : 'w-3 bg-white/20 hover:bg-white/40'}`}
                   />
                 ))}
               </div>

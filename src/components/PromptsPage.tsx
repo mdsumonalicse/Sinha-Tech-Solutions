@@ -15,6 +15,9 @@ export default function PromptsPage() {
 
   const [isPageShared, setIsPageShared] = useState(false);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
   useEffect(() => {
     const q = query(
       collection(db, 'products'), 
@@ -127,10 +130,17 @@ export default function PromptsPage() {
     }
   };
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
   const filteredPrompts = prompts.filter(p => 
     p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     p.prompt?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const totalPages = Math.ceil(filteredPrompts.length / itemsPerPage);
+  const currentPrompts = filteredPrompts.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20 relative">
@@ -218,89 +228,143 @@ export default function PromptsPage() {
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredPrompts.map((prompt) => (
-              <motion.div
-                key={prompt.id}
-                layout
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="bg-white rounded-3xl overflow-hidden border border-gray-100 hover:shadow-2xl hover:shadow-purple-100 transition-all group flex flex-col"
-              >
-                <div 
-                  className="aspect-[2/3] relative overflow-hidden bg-gray-50 border-b border-gray-50 cursor-pointer"
-                  onClick={() => navigate(`/prompts/${prompt.id}`)}
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {currentPrompts.map((prompt) => (
+                <motion.div
+                  key={prompt.id}
+                  layout
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="bg-white rounded-3xl overflow-hidden border border-gray-100 hover:shadow-2xl hover:shadow-purple-100 transition-all group flex flex-col"
                 >
-                  <img 
-                    src={prompt.image} 
-                    alt={prompt.name} 
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
-                    referrerPolicy="no-referrer"
-                  />
-                  <div className="absolute top-4 left-4">
-                    <span className="bg-black/50 backdrop-blur-md text-white text-[8px] font-black px-2 py-1 rounded-lg uppercase tracking-wider">
-                      {prompt.category || 'AI PROMPT'}
-                    </span>
+                  <div 
+                    className="aspect-[2/3] relative overflow-hidden bg-gray-50 border-b border-gray-50 cursor-pointer"
+                    onClick={() => navigate(`/prompts/${prompt.id}`)}
+                  >
+                    <img 
+                      src={prompt.image} 
+                      alt={prompt.name} 
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+                      referrerPolicy="no-referrer"
+                    />
+                    <div className="absolute top-4 left-4">
+                      <span className="bg-black/50 backdrop-blur-md text-white text-[8px] font-black px-2 py-1 rounded-lg uppercase tracking-wider">
+                        {prompt.category || 'AI PROMPT'}
+                      </span>
+                    </div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-6">
+                      <p className="text-white text-[10px] font-bold line-clamp-2 uppercase leading-tight">
+                        {prompt.description}
+                      </p>
+                    </div>
                   </div>
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-6">
-                    <p className="text-white text-[10px] font-bold line-clamp-2 uppercase leading-tight">
-                      {prompt.description}
-                    </p>
+                  
+                  <div className="p-4 flex flex-col flex-1">
+                    <div className="flex items-center gap-3 mt-auto">
+                      <h3 
+                        className="text-xs font-black text-gray-900 tracking-tighter cursor-pointer hover:text-brand-primary transition-colors shrink-0"
+                        onClick={() => navigate(`/prompts/${prompt.id}`)}
+                      >
+                        {prompt.name}
+                      </h3>
+                      
+                      <div className="flex-1 flex gap-1.5 justify-end">
+                      <button 
+                        onClick={() => navigate(`/prompts/${prompt.id}`)}
+                        className="p-2.5 rounded-lg bg-purple-50 text-purple-600 hover:bg-purple-100 transition-all flex items-center justify-center border border-purple-100"
+                      >
+                        <Eye size={12} />
+                      </button>
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleCopy(prompt.id, prompt.prompt);
+                        }}
+                        className={`px-3 py-2.5 rounded-lg font-black text-[9px] uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 ${
+                          copiedId === prompt.id 
+                            ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-200' 
+                            : 'bg-gray-900 text-white hover:bg-gray-800'
+                        }`}
+                      >
+                        {copiedId === prompt.id ? (
+                          <>COPIED <CheckCircle2 size={12} /></>
+                        ) : (
+                          <>COPY <Copy size={12} /></>
+                        )}
+                      </button>
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleShare(prompt);
+                        }}
+                        className={`p-2.5 rounded-lg transition-all flex items-center justify-center ${
+                          sharedId === prompt.id 
+                            ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' 
+                            : 'bg-white text-gray-400 border border-gray-100 hover:border-gray-900 hover:text-gray-900'
+                        }`}
+                      >
+                        <Share2 size={12} />
+                      </button>
+                    </div>
                   </div>
+                </div>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="mt-16 flex flex-col items-center gap-8">
+                <div className="flex items-center gap-2">
+                  <button 
+                    disabled={currentPage === 1}
+                    onClick={() => {
+                      setCurrentPage(prev => Math.max(1, prev - 1));
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    className="h-10 px-4 bg-white border border-gray-100 rounded-xl text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-brand-primary disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm"
+                  >
+                    PREVIEW PAGE
+                  </button>
+                  
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: totalPages }).map((_, i) => (
+                      <button
+                        key={i + 1}
+                        onClick={() => {
+                          setCurrentPage(i + 1);
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
+                        className={`w-10 h-10 rounded-xl text-[10px] font-black transition-all ${
+                          currentPage === i + 1 
+                            ? 'bg-brand-primary text-white shadow-lg shadow-brand-primary/20' 
+                            : 'bg-white text-gray-400 hover:text-brand-primary border border-gray-100'
+                        }`}
+                      >
+                        {i + 1}
+                      </button>
+                    ))}
+                  </div>
+
+                  <button 
+                    disabled={currentPage === totalPages}
+                    onClick={() => {
+                      setCurrentPage(prev => Math.min(totalPages, prev + 1));
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    className="h-10 px-4 bg-brand-primary text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:opacity-90 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-lg shadow-brand-primary/20"
+                  >
+                    NEXT PAGE
+                  </button>
                 </div>
                 
-                <div className="p-4 flex flex-col flex-1">
-                  <div className="flex items-center gap-3 mt-auto">
-                    <h3 
-                      className="text-xs font-black text-gray-900 tracking-tighter cursor-pointer hover:text-brand-primary transition-colors shrink-0"
-                      onClick={() => navigate(`/prompts/${prompt.id}`)}
-                    >
-                      {prompt.name}
-                    </h3>
-                    
-                    <div className="flex-1 flex gap-1.5 justify-end">
-                    <button 
-                      onClick={() => navigate(`/prompts/${prompt.id}`)}
-                      className="p-2.5 rounded-lg bg-purple-50 text-purple-600 hover:bg-purple-100 transition-all flex items-center justify-center border border-purple-100"
-                    >
-                      <Eye size={12} />
-                    </button>
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleCopy(prompt.id, prompt.prompt);
-                      }}
-                      className={`px-3 py-2.5 rounded-lg font-black text-[9px] uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 ${
-                        copiedId === prompt.id 
-                          ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-200' 
-                          : 'bg-gray-900 text-white hover:bg-gray-800'
-                      }`}
-                    >
-                      {copiedId === prompt.id ? (
-                        <>COPIED <CheckCircle2 size={12} /></>
-                      ) : (
-                        <>COPY <Copy size={12} /></>
-                      )}
-                    </button>
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleShare(prompt);
-                      }}
-                      className={`p-2.5 rounded-lg transition-all flex items-center justify-center ${
-                        sharedId === prompt.id 
-                          ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' 
-                          : 'bg-white text-gray-400 border border-gray-100 hover:border-gray-900 hover:text-gray-900'
-                      }`}
-                    >
-                      <Share2 size={12} />
-                    </button>
-                  </div>
+                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">
+                  Showing Page {currentPage} of {totalPages} ({filteredPrompts.length} total prompts)
                 </div>
               </div>
-              </motion.div>
-            ))}
-          </div>
+            )}
+          </>
         )}
       </div>
     </div>

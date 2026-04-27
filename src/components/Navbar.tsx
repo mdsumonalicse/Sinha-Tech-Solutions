@@ -98,30 +98,47 @@ export default function Navbar({
           </div>
         </div>
 
-        <nav className="bg-white border-b border-gray-200">
+        <nav className="bg-white/90 backdrop-blur-md border-b border-gray-100 sticky top-[30px] sm:top-[40px] z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-20">
-            <div className="flex items-center gap-4">
+          <div className="flex justify-between items-center h-16 sm:h-20">
+            <div className="flex items-center gap-3">
               <button 
                 onClick={() => setIsMobileMenuOpen(true)}
-                className="lg:hidden text-gray-600 hover:text-brand-primary transition-colors"
+                className="lg:hidden w-10 h-10 flex items-center justify-center text-gray-900 hover:bg-gray-50 rounded-xl transition-all"
               >
                 <Menu size={24} />
               </button>
-              <Link to="/" className="flex items-center gap-3 group">
-                <div className="w-10 h-10 sm:w-16 sm:h-16 flex items-center justify-center drop-shadow-sm">
-                  <img 
-                    src="https://i.postimg.cc/CKp5SGF3/backgrounderaser-1777119211.png" 
-                    alt="Sinha Tech Solutions Logo" 
-                    className="h-full w-full object-contain transition-transform group-hover:scale-105"
-                    referrerPolicy="no-referrer"
+              <Link to="/" className="flex items-center gap-2 sm:gap-4 group">
+                <div className="relative">
+                  <div className="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center relative z-10">
+                    <img 
+                      src="https://i.postimg.cc/CKp5SGF3/backgrounderaser-1777119211.png" 
+                      alt="Logo" 
+                      className="h-full w-full object-contain transition-all duration-500 group-hover:scale-110 group-hover:rotate-3"
+                      referrerPolicy="no-referrer"
+                    />
+                  </div>
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.5 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="absolute inset-0 bg-brand-primary/10 rounded-full blur-xl -z-0 group-hover:bg-brand-primary/20 transition-colors"
                   />
                 </div>
-                <div className="flex flex-col items-start justify-center border-l border-gray-100 pl-3">
-                  <span className="font-display font-black text-xl sm:text-2xl tracking-tighter leading-none text-gray-900 group-hover:text-brand-primary transition-colors whitespace-nowrap">
-                    SINHA <span className="text-gray-400">TECH SOLUTIONS</span>
-                  </span>
-                  <div className="h-[2px] w-full bg-brand-primary mt-1 scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
+                <div className="flex flex-col items-start justify-center">
+                  <div className="flex items-baseline">
+                    <span className="font-display font-black text-xl sm:text-3xl tracking-tighter leading-none text-gray-900 transition-colors">
+                      SINHA <span className="sm:hidden text-brand-primary italic">TECH</span>
+                    </span>
+                    <span className="hidden sm:inline-block ml-2 font-display font-bold text-sm tracking-[0.2em] uppercase text-gray-400 group-hover:text-brand-primary transition-colors">
+                      Tech Solutions
+                    </span>
+                  </div>
+                  <div className="sm:hidden mt-0.5 flex items-center gap-1.5">
+                    <div className="h-[1px] w-3 bg-brand-primary/50" />
+                    <span className="text-[7px] font-bold text-gray-400 uppercase tracking-[0.2em] leading-none">
+                      Solutions
+                    </span>
+                  </div>
                 </div>
               </Link>
             </div>
@@ -324,7 +341,7 @@ export default function Navbar({
         onCategoryChange={onCategoryChange}
       />
     </header>
-    <div className="h-[113px] sm:h-[113px]" />
+    <div className="h-[96px] sm:h-[113px]" />
   </>
 );
 }

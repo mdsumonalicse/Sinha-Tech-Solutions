@@ -12,3 +12,13 @@
     @apply font-sans bg-[#F3F4F6] text-gray-900;
   }
 }
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
