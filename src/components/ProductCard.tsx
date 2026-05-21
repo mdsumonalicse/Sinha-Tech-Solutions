@@ -12,7 +12,8 @@ interface ProductCardProps {
 
 export default function ProductCard({ product }: ProductCardProps) {
   const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
-  const isAndroidSoftware = product.category?.trim().toLowerCase() === 'android software';
+  const catLower = product.category?.trim().toLowerCase() || '';
+  const isAndroidSoftware = catLower === 'android software' || catLower.includes('android') || catLower.includes('apk');
 
   return (
     <motion.div
@@ -31,8 +32,18 @@ export default function ProductCard({ product }: ProductCardProps) {
         </Link>
         
         {product.badge && (
-          <div className="absolute top-1 left-1 sm:top-2 sm:left-2 bg-brand-primary text-[8px] sm:text-[9px] font-black px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md text-white uppercase tracking-wider z-10">
+          <div className="absolute top-1 left-1 sm:top-2 sm:left-2 bg-brand-primary text-[8px] sm:text-[9px] font-black px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md text-white uppercase tracking-wider z-10 font-sans shadow-sm">
             {product.badge}
+          </div>
+        )}
+
+        {isAndroidSoftware && (
+          <div className="absolute bottom-1.5 right-1.5 sm:bottom-2 sm:right-2 bg-emerald-500 text-white text-[8px] sm:text-[10px] font-black px-2 py-1 rounded-lg shadow-md uppercase tracking-wider z-10 flex items-center gap-1 font-sans border border-emerald-450/40">
+            <span className="relative flex h-1.5 w-1.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-white"></span>
+            </span>
+            <span>v{product.appVersion?.replace(/^[vV]/, '') || '1.0.0'}</span>
           </div>
         )}
 
@@ -74,27 +85,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           {product.category}
         </p>
 
-        {isAndroidSoftware && product.appVersion && (
-          <div className="flex flex-col gap-1 mb-2 sm:mb-3.5 bg-emerald-500/5 p-2 sm:p-2.5 rounded-xl border border-emerald-500/10">
-            <div className="flex items-center gap-1.5 justify-between">
-              <span className="text-[9px] font-black text-emerald-800 uppercase tracking-tight flex items-center gap-1">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                </span>
-                Version: {product.appVersion}
-              </span>
-              <span className="text-[8px] font-black uppercase text-emerald-600 tracking-wider bg-emerald-100/60 px-1.5 py-0.5 rounded-md">
-                Latest
-              </span>
-            </div>
-            {product.lastUpdated && (
-              <p className="text-[8px] text-gray-400 font-bold uppercase tracking-tight leading-none mt-0.5">
-                Updated: {product.lastUpdated}
-              </p>
-            )}
-          </div>
-        )}
+
         
         <div className="mt-auto pt-2 sm:pt-3 border-t border-gray-50">
           {product.type !== 'prompt' && (

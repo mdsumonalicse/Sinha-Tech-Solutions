@@ -1170,6 +1170,189 @@ export default function CouponsTab() {
           </div>
         </div>
       </div>
+
+      {/* Edit Coupon Modal */}
+      {isEditModalOpen && selectedEditCoupon && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-md z-[150] flex items-center justify-center p-4 overflow-y-auto">
+          <div className="fixed inset-0" onClick={() => setIsEditModalOpen(false)} />
+          
+          <div className="bg-white w-full max-w-xl rounded-[2.5rem] overflow-hidden relative z-[160] flex flex-col shadow-2xl p-6 sm:p-8 md:p-10 max-h-[85vh]">
+            {/* Close Button */}
+            <button 
+              onClick={() => setIsEditModalOpen(false)}
+              className="absolute top-6 right-6 sm:top-8 sm:right-8 w-11 h-11 bg-gray-50 hover:bg-gray-100 rounded-2xl flex items-center justify-center text-gray-400 hover:text-gray-900 transition-all z-20 cursor-pointer border border-gray-100"
+            >
+              <X size={20} />
+            </button>
+
+            {/* Header */}
+            <div className="mb-6 flex items-start gap-4">
+              <div className="w-12 h-12 bg-brand-primary/5 text-brand-primary rounded-2xl flex items-center justify-center shrink-0 border border-brand-primary/10">
+                <Ticket size={24} />
+              </div>
+              <div>
+                <h3 className="text-xl sm:text-2xl font-black text-gray-900 uppercase tracking-tight">Edit Coupon (কুপন তথ্য এডিট করুন)</h3>
+                <p className="text-[10px] text-gray-400 font-black uppercase tracking-wider mt-0.5">
+                  Coupon Code: <span className="text-brand-primary font-mono">{selectedEditCoupon.code}</span>
+                </p>
+              </div>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleUpdateCoupon} className="flex-1 overflow-y-auto pr-1 space-y-5 py-2">
+              {/* Customer Name */}
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">
+                  Customer Name (গ্রাহকের নাম)
+                </label>
+                <div className="relative">
+                  <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-gray-400 pointer-events-none">
+                    <User size={14} />
+                  </span>
+                  <input 
+                    type="text" 
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    placeholder="e.g. Rohim Ali"
+                    className="w-full bg-gray-50 border border-gray-100/80 rounded-2xl py-3.5 pl-11 pr-5 text-xs font-black uppercase tracking-wider outline-none focus:ring-2 focus:ring-brand-primary/20 focus:bg-white transition-all shadow-inner" 
+                  />
+                </div>
+              </div>
+
+              {/* Customer Phone */}
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">
+                  Customer Phone (ফোন নম্বর)
+                </label>
+                <div className="relative">
+                  <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-gray-400 pointer-events-none">
+                    <Phone size={14} />
+                  </span>
+                  <input 
+                    type="text" 
+                    value={editPhone}
+                    onChange={(e) => setEditPhone(e.target.value)}
+                    placeholder="e.g. 017XXXXXXXX"
+                    className="w-full bg-gray-50 border border-gray-100/80 rounded-2xl py-3.5 pl-11 pr-5 text-xs font-black uppercase tracking-wider outline-none focus:ring-2 focus:ring-brand-primary/20 focus:bg-white transition-all shadow-inner" 
+                  />
+                </div>
+              </div>
+
+              {/* Customer Email */}
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">
+                  Customer Email (ইমেইল এড্রেস)
+                </label>
+                <div className="relative">
+                  <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-gray-400 pointer-events-none">
+                    <Mail size={14} />
+                  </span>
+                  <input 
+                    type="email" 
+                    value={editEmail}
+                    onChange={(e) => setEditEmail(e.target.value)}
+                    placeholder="e.g. example@gmail.com"
+                    className="w-full bg-gray-50 border border-gray-100/80 rounded-2xl py-3.5 pl-11 pr-5 text-xs font-bold outline-none focus:ring-2 focus:ring-brand-primary/20 focus:bg-white transition-all shadow-inner" 
+                  />
+                </div>
+              </div>
+
+              {/* Locked Product selection */}
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">
+                  Lock on Product (নির্দিষ্ট প্রোডাক্ট লক করুন)
+                </label>
+                <div className="relative">
+                  <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-gray-400 pointer-events-none">
+                    <Lock size={14} />
+                  </span>
+                  <select
+                    value={editProductId}
+                    onChange={(e) => setEditProductId(e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-100/80 rounded-2xl py-3.5 pl-11 pr-5 text-xs font-black uppercase tracking-widest outline-none focus:ring-2 focus:ring-brand-primary/20 focus:bg-white transition-all shadow-inner appearance-none cursor-pointer"
+                  >
+                    <option value="all">All Products (No Lock / যেকোনো প্রোডাক্ট)</option>
+                    {products.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name} (৳{p.price})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Coupon Status used / unused */}
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">
+                    Coupon Status (কুপন ব্যবহার স্থিতি)
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={editUsed ? 'used' : 'active'}
+                      onChange={(e) => setEditUsed(e.target.value === 'used')}
+                      className="w-full bg-gray-50 border border-gray-100/80 rounded-2xl py-3.5 px-5 text-xs font-black uppercase tracking-widest outline-none focus:ring-2 focus:ring-brand-primary/20 focus:bg-white transition-all shadow-inner cursor-pointer"
+                    >
+                      <option value="active">Active (সচল / অব্যবহৃত)</option>
+                      <option value="used">Used (ব্যবহৃত / নিয়োজিত)</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Expiry Type */}
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">
+                    Expiry Type (মেয়াদ কোড টাইপ)
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={editExpiryType}
+                      onChange={(e) => setEditExpiryType(e.target.value as any)}
+                      className="w-full bg-gray-50 border border-gray-100/80 rounded-2xl py-3.5 px-5 text-xs font-black uppercase tracking-widest outline-none focus:ring-2 focus:ring-brand-primary/20 focus:bg-white transition-all shadow-inner cursor-pointer"
+                    >
+                      <option value="lifetime">Lifetime (আজীবন কুপন)</option>
+                      <option value="custom">Custom Date (নির্দিষ্ট মেয়াদ)</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Custom Expiry Input if chosen */}
+              {editExpiryType === 'custom' && (
+                <div className="space-y-1.5 animate-fadeIn">
+                  <label className="text-[10px] font-black text-rose-500 uppercase tracking-widest pl-1 flex items-center gap-1">
+                    <Calendar size={12} /> Custom Expiry Time (মেয়াদ শেষ হওয়ার সময়)
+                  </label>
+                  <input
+                    type="datetime-local"
+                    value={editExpiryCustom}
+                    onChange={(e) => setEditExpiryCustom(e.target.value)}
+                    required
+                    className="w-full bg-gray-50 border border-gray-100/80 rounded-2xl py-3.5 px-5 text-xs font-black uppercase tracking-widest outline-none focus:ring-2 focus:ring-rose-500/20 focus:bg-white transition-all shadow-inner select-none cursor-pointer"
+                  />
+                </div>
+              )}
+
+              {/* Actions Footer */}
+              <div className="pt-4 flex items-center justify-end gap-3 border-t border-gray-100 mt-6 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setIsEditModalOpen(false)}
+                  className="px-6 py-3.5 text-xs font-black uppercase tracking-wider text-gray-500 hover:text-gray-900 bg-gray-100 hover:bg-gray-200/80 rounded-2xl transition-all cursor-pointer"
+                >
+                  Cancel / বাতিল
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-3.5 text-xs font-black uppercase tracking-wider text-white bg-brand-primary hover:bg-brand-primary/90 rounded-2xl shadow-lg shadow-brand-primary/20 focus:ring-4 focus:ring-brand-primary/20 hover:scale-102 transition-all cursor-pointer"
+                >
+                  Save Changes / সেভ করুন
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

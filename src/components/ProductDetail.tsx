@@ -35,7 +35,8 @@ export default function ProductDetail() {
   const [shared, setShared] = useState(false);
   const [activeActionTab, setActiveActionTab] = useState<'order' | 'download'>('order');
 
-  const isAndroidSoftware = product?.category?.trim().toLowerCase() === 'android software';
+  const catLower = product?.category?.trim().toLowerCase() || '';
+  const isAndroidSoftware = catLower === 'android software' || catLower.includes('android') || catLower.includes('apk');
 
   const copyToClipboard = async (text: string) => {
     try {
@@ -274,7 +275,7 @@ export default function ProductDetail() {
               <span className="text-[9px] lg:text-[10px] font-black text-gray-400 uppercase tracking-widest">Verified Assets</span>
             </div>
 
-            {isAndroidSoftware && product.appVersion && (
+            {isAndroidSoftware && (
               <div className="mb-6 bg-gradient-to-r from-emerald-550/10 via-emerald-550/5 to-transparent p-4 rounded-3xl border border-emerald-500/10 flex items-center gap-4 shadow-sm">
                 <div className="w-12 h-12 rounded-2xl bg-emerald-500 text-white flex items-center justify-center shadow-lg shadow-emerald-500/20 shrink-0">
                   <Sparkles size={24} className="animate-pulse" />
@@ -286,7 +287,7 @@ export default function ProductDetail() {
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-505"></span>
                       </span>
-                      LATEST APK VERSION: {product.appVersion}
+                      LATEST APK VERSION: {product.appVersion || 'v1.0.0'}
                     </span>
                     <span className="text-[9px] font-bold text-gray-500 bg-gray-100/60 px-2 py-1 rounded-full uppercase tracking-wider border border-gray-200">
                       SECURE & TESTED
