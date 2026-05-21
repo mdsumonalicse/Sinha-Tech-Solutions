@@ -269,13 +269,19 @@ export default function CouponsTab() {
       expireMsg = `⌛ মেয়াদ: আজীবন (Lifetime Access)`;
     }
 
+    const productUrl = coupon.productId && coupon.productId !== 'all' 
+      ? `${window.location.origin}/product/${coupon.productId}` 
+      : `${window.location.origin}`;
+
     return `আসসালামু আলাইকুম, ${coupon.customerName || 'সম্মানিত গ্রাহক'}\n` +
            `সিনহা টেক সলিউশনস (Sinha Tech Solutions) থেকে আপনার ডিজিটাল সফটওয়্যার ডাউনলোড কুপন কোডটি প্রস্তুত করা হয়েছে! 😊\n\n` +
            `🔑 কুপন কোড: ${coupon.code}\n` +
            `🔒 সফটওয়্যার: ${softName}\n` +
            `${expireMsg}\n\n` +
+           `🔗 প্রোডাক্ট লিঙ্ক (Product Link):\n` +
+           `${productUrl}\n\n` +
            `📥 কুপন ব্যবহারের নির্দেশনা:\n` +
-           `১. আমাদের ওয়েবসাইটে কাঙ্ক্ষিত প্রোডাক্ট বা সফটওয়্যার পেজে যান।\n` +
+           `১. উপরে দেওয়া প্রোডাক্ট লিঙ্কে অথবা আমাদের ওয়েবসাইটে যান।\n` +
            `২. "Verify Coupon to Download" বাটনে ক্লিক করুন।\n` +
            `৩. আপনার কুপন কোডটি [ ${coupon.code} ] সাবমিট করুন।\n` +
            `৪. কুপনটি সফলভাবে যাচাই হওয়ার পর ডাউনলোড বাটনে ক্লিক করে ফাইলটি ডাউনলোড করে নিন।\n\n` +
