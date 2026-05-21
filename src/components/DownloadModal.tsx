@@ -201,6 +201,62 @@ export default function DownloadModal({ isOpen, onClose, product }: DownloadModa
                   Happy Downloading with SINHA TECH SOLUTIONS
                 </div>
               </div>
+            ) : product?.isFree ? (
+              <div className="overflow-y-auto no-scrollbar px-4 sm:px-7 py-6 sm:py-8 space-y-6 text-center">
+                {/* Header title */}
+                <div className="flex flex-col items-center gap-3">
+                  <div className="w-14 h-14 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center shadow-sm">
+                    <Download size={28} className="animate-bounce" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-none uppercase">Free Download</h3>
+                    <p className="text-[10px] sm:text-[11px] text-emerald-600 font-extrabold uppercase tracking-[0.25em] mt-1.5 bg-emerald-50 px-3.5 py-1.5 rounded-full border border-emerald-100 font-sans">
+                      সম্পূর্ণ ফ্রি সফটওয়্যার
+                    </p>
+                  </div>
+                </div>
+
+                {/* Selected Software Details Card */}
+                <div className="relative overflow-hidden bg-gradient-to-br from-indigo-50/20 via-slate-50 to-emerald-50/20 rounded-2xl p-4 sm:p-5 border border-slate-100 text-left font-sans">
+                  <div className="absolute right-3 -bottom-3 text-slate-200/50 shrink-0 select-none">
+                    <Smartphone size={72} />
+                  </div>
+                  <div className="relative z-10">
+                    <div className="text-[8px] sm:text-[9px] font-black text-indigo-600 uppercase tracking-widest mb-0.5">Category: {product?.category}</div>
+                    <h4 className="text-sm sm:text-base font-black text-gray-900 uppercase tracking-tight line-clamp-1 mb-1 pr-10">{product?.name}</h4>
+                    <p className="text-[9px] sm:text-[10px] text-gray-500 font-bold uppercase tracking-[0.05em] flex items-center gap-1 mt-1.5 font-sans">
+                      <ShieldCheck size={12} className="text-emerald-500" />
+                      Status: Safe, Secured & Free to Use
+                    </p>
+                  </div>
+                </div>
+
+                {/* Direct download Button */}
+                <div className="space-y-3 pt-2">
+                  <motion.a
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    href={product?.downloadUrl || '#'}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="w-full py-4 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-2xl font-black text-xs uppercase tracking-[0.15em] shadow-lg shadow-emerald-250 hover:opacity-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    Direct Download (ডাউনলোড করুন) <Download size={15} />
+                  </motion.a>
+                  
+                  <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wide leading-relaxed">
+                    * ডাউনলোড করতে কোনো কুপন লাগবে না। লিংকটি সরাসরি অফিশিয়াল ও নিরাপদ সার্ভার থেকে ফাইল ডাউনলোড করবে।
+                  </p>
+                </div>
+
+                {/* Direct Security guarantee */}
+                <div className="bg-emerald-50/40 border border-emerald-100/30 rounded-2xl p-4 flex items-start gap-2.5 text-left">
+                  <ShieldCheck size={18} className="text-emerald-500 shrink-0 mt-0.5" />
+                  <p className="text-[9px] text-emerald-700 font-bold uppercase leading-relaxed tracking-tight">
+                    We strive to provide premium, secure application packages. Feel free to contact Sinha support if you experience issues.
+                  </p>
+                </div>
+              </div>
             ) : (
               <div className="overflow-y-auto no-scrollbar px-4 sm:px-7 py-5 sm:py-7 space-y-4">
                 {/* Header title */}

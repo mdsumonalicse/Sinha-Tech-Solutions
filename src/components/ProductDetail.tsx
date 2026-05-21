@@ -330,8 +330,15 @@ export default function ProductDetail() {
 
             {product.type !== 'prompt' && (
               <div className="flex flex-col gap-1 mb-6 lg:mb-8 bg-gray-50/50 p-6 rounded-[2.5rem] border border-gray-100/60 shadow-inner">
-                <div className="flex items-baseline gap-4">
-                  {activeActionTab === 'order' ? (
+                <div className="flex items-baseline gap-4 flex-wrap">
+                  {product.isFree ? (
+                    <>
+                      <span className="text-3xl lg:text-5xl font-black text-emerald-500 tracking-tighter">FREE / বিনামূল্যে</span>
+                      <span className="text-[9px] font-black text-emerald-500 uppercase tracking-wider bg-emerald-50 px-2.5 py-1.5 rounded-md border border-emerald-100 self-center font-sans">
+                        সম্পূর্ণ ফ্রি ডাউনলোড
+                      </span>
+                    </>
+                  ) : activeActionTab === 'order' ? (
                     <>
                       <span className="text-3xl lg:text-5xl font-black text-brand-primary tracking-tighter">৳{product.price.toLocaleString()}</span>
                       {product.oldPrice && (
@@ -352,10 +359,12 @@ export default function ProductDetail() {
                   )}
                 </div>
                 <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-1.5 flex items-center gap-1.5">
-                  <Sparkles size={12} className="text-brand-primary shrink-0" />
-                  {activeActionTab === 'order' 
-                    ? 'পূর্ণাঙ্গ অফিসিয়াল লাইসেন্স কী ও ইনস্টলেশন সাপোর্ট সহ' 
-                    : 'বিকাশ/নগদে ১০০৳ কুপন সংগ্রহ করে সিকিউর ডাউনলোড করুন'}
+                  <Sparkles size={12} className="text-brand-primary shrink-0 text-emerald-500 animate-pulse" />
+                  {product.isFree 
+                    ? 'কোনো কুপন বা ফি লাগবে না, সরাসরি ডাউনলোড করুন'
+                    : activeActionTab === 'order' 
+                      ? 'পূর্ণাঙ্গ অফিসিয়াল লাইসেন্স কী ও ইনস্টলেশন সাপোর্ট সহ' 
+                      : 'বিকাশ/নগদে ১০০৳ কুপন সংগ্রহ করে সিকিউর ডাউনলোড করুন'}
                 </p>
               </div>
             )}

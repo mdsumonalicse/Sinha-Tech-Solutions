@@ -108,6 +108,7 @@ interface Product {
   type?: 'buy' | 'download' | 'prompt';
   prompt?: string;
   downloadUrl?: string;
+  isFree?: boolean;
 }
 
 interface SiteSettings {
@@ -1764,7 +1765,8 @@ function ProductModal({ isOpen, onClose, editingProduct }: { isOpen: boolean, on
     prompt: '',
     downloadUrl: '',
     appVersion: '',
-    lastUpdated: ''
+    lastUpdated: '',
+    isFree: false
   });
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -1786,7 +1788,8 @@ function ProductModal({ isOpen, onClose, editingProduct }: { isOpen: boolean, on
         prompt: editingProduct.prompt || '',
         downloadUrl: editingProduct.downloadUrl || '',
         appVersion: editingProduct.appVersion || '',
-        lastUpdated: editingProduct.lastUpdated || ''
+        lastUpdated: editingProduct.lastUpdated || '',
+        isFree: editingProduct.isFree || false
       });
     } else {
       setFormData({ 
@@ -1802,7 +1805,8 @@ function ProductModal({ isOpen, onClose, editingProduct }: { isOpen: boolean, on
         prompt: '',
         downloadUrl: '',
         appVersion: '',
-        lastUpdated: ''
+        lastUpdated: '',
+        isFree: false
       });
     }
   }, [editingProduct]);
@@ -1826,6 +1830,7 @@ function ProductModal({ isOpen, onClose, editingProduct }: { isOpen: boolean, on
       // Filter out empty gallery images
       const cleanedData = {
         ...formData,
+        price: formData.isFree ? 0 : formData.price,
         lastUpdated: autoLastUpdated,
         gallery: formData.gallery.filter(url => url.trim() !== '')
       };
@@ -1950,7 +1955,37 @@ function ProductModal({ isOpen, onClose, editingProduct }: { isOpen: boolean, on
                     </div>
 
                     {(formData.category?.trim().toLowerCase() === 'android software' || formData.category?.trim().toLowerCase() === 'android_software') && (
-                      <div className="p-5 bg-emerald-50 rounded-2xl border border-emerald-100 space-y-3">
+                      <div className="p-5 bg-emerald-50 rounded-2xl border border-emerald-100 space-y-4">
+                        <div className="space-y-1.5 font-sans">
+                          <label className="text-[10px] font-black text-emerald-700 uppercase tracking-widest pl-1 flex items-center gap-1.5">
+                            ⚙️ Pricing Type (ডাউনলোড অফার ধরণ)
+                          </label>
+                          <div className="grid grid-cols-2 gap-2">
+                            <button
+                              type="button"
+                              onClick={() => setFormData({ ...formData, isFree: false })}
+                              className={`py-3 px-4 rounded-xl text-xs font-black uppercase tracking-wider border transition-all ${
+                                !formData.isFree
+                                  ? 'bg-emerald-600 text-white border-emerald-600 shadow-md'
+                                  : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                              }`}
+                            >
+                              Paid (৳১০০ কুপন লাগবে)
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setFormData({ ...formData, isFree: true, price: 0 })}
+                              className={`py-3 px-4 rounded-xl text-xs font-black uppercase tracking-wider border transition-all ${
+                                formData.isFree
+                                  ? 'bg-emerald-600 text-white border-emerald-600 shadow-md'
+                                  : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                              }`}
+                            >
+                              Free (সম্পূর্ণ ফ্রি)
+                            </button>
+                          </div>
+                        </div>
+
                         <div className="space-y-1.5">
                           <label className="text-[10px] font-black text-emerald-700 uppercase tracking-widest pl-1 flex items-center gap-1.5">
                             <Sparkles size={12} className="text-emerald-500 animate-spin-slow" /> App Version (অ্যাপ সংস্করণ)
@@ -1959,7 +1994,7 @@ function ProductModal({ isOpen, onClose, editingProduct }: { isOpen: boolean, on
                             value={formData.appVersion || ''} 
                             onChange={(e) => setFormData({...formData, appVersion: e.target.value})} 
                             placeholder="e.g. v2.1.4, v4.5 Premium (Latest)" 
-                            className="w-full bg-white border border-gray-100 rounded-xl py-4 px-6 text-xs font-black uppercase outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all" 
+                            className="w-full bg-white border border-gray-100 rounded-xl py-4 px-6 text-xs font-black uppercase outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all font-sans" 
                           />
                         </div>
                         {formData.appVersion && (
@@ -1978,12 +2013,29 @@ function ProductModal({ isOpen, onClose, editingProduct }: { isOpen: boolean, on
                       <>
                         <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-1.5">
-                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-2">Sale Price (৳)</label>
-                            <input required type="number" value={formData.price} onChange={(e) => setFormData({...formData, price: Number(e.target.value)})} className="w-full bg-gray-50 border-none rounded-2xl py-5 px-8 text-xs font-black outline-none focus:ring-2 focus:ring-brand-primary/10 transition-all" />
+                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-2">
+                              {formData.isFree ? 'Sale Price (Disabled for Free)' : 'Sale Price (৳)'}
+                            </label>
+                            <input 
+                              required={!formData.isFree} 
+                              disabled={formData.isFree}
+                              type="number" 
+                              value={formData.isFree ? 0 : formData.price} 
+                              onChange={(e) => setFormData({...formData, price: Number(e.target.value)})} 
+                              className={`w-full border-none rounded-2xl py-5 px-8 text-xs font-black outline-none transition-all ${formData.isFree ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gray-50 focus:ring-2 focus:ring-brand-primary/10'}`} 
+                            />
                           </div>
                           <div className="space-y-1.5">
-                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-2">Regular Price</label>
-                            <input type="number" value={formData.oldPrice} onChange={(e) => setFormData({...formData, oldPrice: Number(e.target.value)})} className="w-full bg-gray-50 border-none rounded-2xl py-5 px-8 text-xs font-black outline-none focus:ring-2 focus:ring-brand-primary/10 transition-all" />
+                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-2">
+                              {formData.isFree ? 'Regular Price (Disabled)' : 'Regular Price'}
+                            </label>
+                            <input 
+                              disabled={formData.isFree}
+                              type="number" 
+                              value={formData.isFree ? '' : formData.oldPrice} 
+                              onChange={(e) => setFormData({...formData, oldPrice: Number(e.target.value)})} 
+                              className={`w-full border-none rounded-2xl py-5 px-8 text-xs font-black outline-none transition-all ${formData.isFree ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gray-50 focus:ring-2 focus:ring-brand-primary/10'}`} 
+                            />
                           </div>
                         </div>
 

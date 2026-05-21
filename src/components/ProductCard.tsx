@@ -90,9 +90,15 @@ export default function ProductCard({ product }: ProductCardProps) {
         <div className="mt-auto pt-2 sm:pt-3 border-t border-gray-50">
           {product.type !== 'prompt' && (
             <div className="flex items-center flex-wrap gap-1 sm:gap-2 mb-2 sm:mb-3">
-              <span className="text-xs sm:text-base font-black text-brand-primary">৳ {product.price.toLocaleString()}</span>
-              {product.oldPrice && (
-                <span className="text-[8px] sm:text-[10px] text-gray-300 line-through font-bold">৳ {product.oldPrice.toLocaleString()}</span>
+              {product.isFree ? (
+                <span className="text-[10px] sm:text-xs font-black text-emerald-600 uppercase tracking-wider bg-emerald-50 border border-emerald-100/60 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md">FREE / বিনামূল্যে</span>
+              ) : (
+                <>
+                  <span className="text-xs sm:text-base font-black text-brand-primary">৳ {product.price.toLocaleString()}</span>
+                  {product.oldPrice && (
+                    <span className="text-[8px] sm:text-[10px] text-gray-300 line-through font-bold">৳ {product.oldPrice.toLocaleString()}</span>
+                  )}
+                </>
               )}
             </div>
           )}

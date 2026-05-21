@@ -12,6 +12,7 @@ export interface Product {
   downloadUrl?: string;
   appVersion?: string;
   lastUpdated?: string;
+  isFree?: boolean;
 }
 
 export interface Category {
