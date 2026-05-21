@@ -10,6 +10,8 @@ export interface Product {
   type?: 'buy' | 'download' | 'prompt';
   prompt?: string;
   downloadUrl?: string;
+  appVersion?: string;
+  lastUpdated?: string;
 }
 
 export interface Category {

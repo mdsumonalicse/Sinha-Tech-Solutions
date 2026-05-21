@@ -32,7 +32,12 @@ import {
   Filter,
   ShieldAlert,
   HelpCircle,
-  UserCheck
+  UserCheck,
+  Edit2,
+  Mail,
+  MessageCircle,
+  Send,
+  X
 } from 'lucide-react';
 
 interface Coupon {
@@ -46,6 +51,7 @@ interface Coupon {
   productName?: string;
   customerName?: string;
   customerPhone?: string;
+  customerEmail?: string;
 }
 
 export default function CouponsTab() {
@@ -67,10 +73,23 @@ export default function CouponsTab() {
   const [selectedProductId, setSelectedProductId] = useState<string>('all');
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
+  const [customerEmail, setCustomerEmail] = useState('');
+
+  // Editing Coupon States
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedEditCoupon, setSelectedEditCoupon] = useState<Coupon | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editPhone, setEditPhone] = useState('');
+  const [editEmail, setEditEmail] = useState('');
+  const [editProductId, setEditProductId] = useState('all');
+  const [editUsed, setEditUsed] = useState(false);
+  const [editExpiryType, setEditExpiryType] = useState<'keep' | 'lifetime' | 'custom'>('keep');
+  const [editExpiryCustom, setEditExpiryCustom] = useState('');
 
   // Toast / Copy notification states
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [copiedShareIndex, setCopiedShareIndex] = useState<string | null>(null);
+  const [openSendMenuCode, setOpenSendMenuCode] = useState<string | null>(null);
 
   // Fetch coupons on real-time listener
   useEffect(() => {
@@ -180,13 +199,15 @@ export default function CouponsTab() {
         productId: selectedProductId,
         productName: targetProduct ? targetProduct.name : 'All Products (No Lock)',
         customerName: customerName.trim(),
-        customerPhone: customerPhone.trim()
+        customerPhone: customerPhone.trim(),
+        customerEmail: customerEmail.trim().toLowerCase()
       });
 
       setSuccessCode(finalCode);
       setCustomCode('');
       setCustomerName('');
       setCustomerPhone('');
+      setCustomerEmail('');
       setSelectedProductId('all');
       
       // Auto close success badge after 8 sec
@@ -230,26 +251,169 @@ export default function CouponsTab() {
 
   // Pre-formatted copy-share text helper
   const handleCopyShareMessage = (coupon: Coupon) => {
-    const timeFormatted = formatTimestamp(coupon.expiresAt);
-    const softName = coupon.productName || 'নির্দিষ্ট সফটওয়্যার';
-    const expireMsg = coupon.expiresAt 
-      ? `⌛ মেয়াদ শেষ হবে: ${timeFormatted}` 
-      : `⌛ মেয়াদ: আজীবন (Lifetime)`;
-    const msg = `আসসালামু আলাইকুম, ${coupon.customerName || 'সম্মানিত গ্রাহক'}\nআপনার ডিজিটাল সফটওয়্যার ডাউনলোড কোডটি প্রস্তুত!\n\n🔑 ডাউনলোড কুপন কোড: ${coupon.code}\n🔒 সফটওয়্যার: ${softName}\n${expireMsg}\n\nধন্যবাদ,\nসিনহা টেক সলিউশনস`;
-    
+    const msg = getShareMessage(coupon);
     navigator.clipboard.writeText(msg);
     setCopiedShareIndex(coupon.code);
     setTimeout(() => setCopiedShareIndex(null), 2000);
   };
 
+  // Pre-formatted text for WhatsApp & Email with beautiful Bengali styling
+  const getShareMessage = (coupon: Coupon) => {
+    const timeFormatted = formatTimestamp(coupon.expiresAt);
+    const softName = coupon.productName || 'কাঙ্ক্ষিত সফটওয়্যার';
+    
+    let expireMsg = '';
+    if (coupon.expiresAt) {
+      expireMsg = `⌛ মেয়াদ শেষ হবে: ${timeFormatted}`;
+    } else {
+      expireMsg = `⌛ মেয়াদ: আজীবন (Lifetime Access)`;
+    }
+
+    return `আসসালামু আলাইকুম, ${coupon.customerName || 'সম্মানিত গ্রাহক'}\n` +
+           `সিনহা টেক সলিউশনস (Sinha Tech Solutions) থেকে আপনার ডিজিটাল সফটওয়্যার ডাউনলোড কুপন কোডটি প্রস্তুত করা হয়েছে! 😊\n\n` +
+           `🔑 কুপন কোড: ${coupon.code}\n` +
+           `🔒 সফটওয়্যার: ${softName}\n` +
+           `${expireMsg}\n\n` +
+           `📥 কুপন ব্যবহারের নির্দেশনা:\n` +
+           `১. আমাদের ওয়েবসাইটে কাঙ্ক্ষিত প্রোডাক্ট বা সফটওয়্যার পেজে যান।\n` +
+           `২. "Verify Coupon to Download" বাটনে ক্লিক করুন।\n` +
+           `৩. আপনার কুপন কোডটি [ ${coupon.code} ] সাবমিট করুন।\n` +
+           `৪. কুপনটি সফলভাবে যাচাই হওয়ার পর ডাউনলোড বাটনে ক্লিক করে ফাইলটি ডাউনলোড করে নিন।\n\n` +
+           `আপনার যেকোনো প্রিমিয়াম সহযোগিতা বা ইনস্টলেশন সমস্যার জন্য আমাদের সাথে যোগাযোগ করতে পারেন।\n\n` +
+           `ধন্যবাদ,\n` +
+           `সিনহা টেক সলিউশনস`;
+  };
+
+  // Format timestamp to input datetime-local compatible format
+  const timestampToDatetimeLocal = (ts: any) => {
+    if (!ts) return '';
+    const date = ts.toDate ? ts.toDate() : new Date(ts);
+    const pad = (num: number) => String(num).padStart(2, '0');
+    const yyyy = date.getFullYear();
+    const mm = pad(date.getMonth() + 1);
+    const dd = pad(date.getDate());
+    const hh = pad(date.getHours());
+    const min = pad(date.getMinutes());
+    return `${yyyy}-${mm}-${dd}T${hh}:${min}`;
+  };
+
+  // Open Edit Modal & load coupon data
+  const handleOpenEditModal = (coupon: Coupon) => {
+    setSelectedEditCoupon(coupon);
+    setEditName(coupon.customerName || '');
+    setEditPhone(coupon.customerPhone || '');
+    setEditEmail(coupon.customerEmail || '');
+    setEditProductId(coupon.productId || 'all');
+    setEditUsed(coupon.used || false);
+    setEditExpiryType(coupon.expiresAt ? 'custom' : 'lifetime');
+    setEditExpiryCustom(timestampToDatetimeLocal(coupon.expiresAt));
+    setIsEditModalOpen(true);
+  };
+
+  // Handle saving the updated coupon details
+  const handleUpdateCoupon = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedEditCoupon) return;
+
+    try {
+      const docRef = doc(db, 'coupons', selectedEditCoupon.code);
+      
+      let finalExpiresAt = selectedEditCoupon.expiresAt;
+      if (editExpiryType === 'lifetime') {
+        finalExpiresAt = null;
+      } else if (editExpiryType === 'custom') {
+        if (editExpiryCustom) {
+          finalExpiresAt = Timestamp.fromDate(new Date(editExpiryCustom));
+        } else {
+          finalExpiresAt = null;
+        }
+      }
+
+      const targetProduct = editProductId === 'all' 
+        ? null 
+        : products.find(p => p.id === editProductId);
+
+      const updateData: any = {
+        customerName: editName.trim(),
+        customerPhone: editPhone.trim(),
+        customerEmail: editEmail.trim(),
+        productId: editProductId,
+        productName: targetProduct ? targetProduct.name : 'All Products (No Lock)',
+        used: editUsed,
+        expiresAt: finalExpiresAt,
+      };
+
+      // Reset use details if changing state
+      if (editUsed && !selectedEditCoupon.used) {
+        updateData.usedAt = serverTimestamp();
+        updateData.usedBy = 'Admin Edit Override';
+      } else if (!editUsed) {
+        updateData.usedAt = null;
+        updateData.usedBy = null;
+      }
+
+      await setDoc(docRef, updateData, { merge: true });
+      setIsEditModalOpen(false);
+      setSelectedEditCoupon(null);
+    } catch (err) {
+      console.error("Error updating coupon:", err);
+      alert("কুপন আপডেট করতে সমস্যা হয়েছে। দয়া করে আবার চেষ্টা করুন।");
+    }
+  };
+
+  // Predefined triggers for WhatsApp sharing with Bangladesh country formatting
+  const handleWhatsAppSend = (coupon: Coupon) => {
+    const msg = getShareMessage(coupon);
+    let originalPhone = coupon.customerPhone ? coupon.customerPhone.trim() : '';
+    let cleanedPhone = originalPhone.replace(/[^0-9]/g, '');
+    
+    if (cleanedPhone.startsWith('0') && cleanedPhone.length === 11) {
+      cleanedPhone = '88' + cleanedPhone;
+    }
+    
+    const waUrl = `https://wa.me/${cleanedPhone}?text=${encodeURIComponent(msg)}`;
+    window.open(waUrl, '_blank');
+  };
+
+  // Predefined triggers for Email client sharing with Gmail/standard client pre-filling
+  const handleEmailSend = (coupon: Coupon) => {
+    const msg = getShareMessage(coupon);
+    const subject = `আপনার কুপন কোড প্রস্তুত - সিনহা টেক সলিউশনস`;
+    const emailStr = coupon.customerEmail ? coupon.customerEmail.trim() : '';
+    
+    const mailtoUrl = `mailto:${emailStr}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(msg)}`;
+    window.open(mailtoUrl, '_blank');
+  };
+
   // Filter coupons based on Search & Status tabs
   const filteredCoupons = coupons.filter(c => {
-    const s = searchTerm.toLowerCase();
+    const s = searchTerm.trim().toLowerCase();
+    if (!s) {
+      // If empty, match based on statusFilter only
+      const expired = isExpired(c);
+      if (statusFilter === 'active') return !c.used && !expired;
+      if (statusFilter === 'used') return c.used;
+      if (statusFilter === 'expired') return !c.used && expired;
+      return true;
+    }
+
+    // Clean input search and phone values for numeric comparisons (removing spacing, hyphens, prefixes)
+    const cleanSearchStr = s.replace(/[^0-9]/g, '');
+    const cleanPhone = c.customerPhone ? c.customerPhone.replace(/[^0-9]/g, '') : '';
+    
+    const matchesPhone = cleanPhone && (
+      cleanPhone.includes(s) || 
+      (cleanSearchStr && cleanPhone.includes(cleanSearchStr))
+    );
+
+    // Deep search in name, middle name, email, product and code
     const matchesSearch = (
       c.code.toLowerCase().includes(s) ||
       (c.usedBy && c.usedBy.toLowerCase().includes(s)) ||
       (c.customerName && c.customerName.toLowerCase().includes(s)) ||
       (c.customerPhone && c.customerPhone.toLowerCase().includes(s)) ||
+      matchesPhone ||
+      (c.customerEmail && c.customerEmail.toLowerCase().includes(s)) ||
       (c.productName && c.productName.toLowerCase().includes(s))
     );
 
@@ -379,6 +543,21 @@ export default function CouponsTab() {
                     onChange={(e) => setCustomerPhone(e.target.value)}
                     placeholder="উদাঃ 01711XXXXXX"
                     className="w-full bg-white border border-gray-200 rounded-xl py-3 pl-10 pr-4 text-xs font-bold font-mono outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all text-gray-800 placeholder:text-gray-300"
+                  />
+                </div>
+              </div>
+
+              {/* Customer Email input */}
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-gray-650 uppercase tracking-wider pl-1 font-sans">৩. ইমেইল ঠিকানা (ঐচ্ছিক)</label>
+                <div className="relative">
+                  <Mail size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input 
+                    type="email"
+                    value={customerEmail}
+                    onChange={(e) => setCustomerEmail(e.target.value)}
+                    placeholder="উদাঃ customer@email.com"
+                    className="w-full bg-white border border-gray-200 rounded-xl py-3 pl-10 pr-4 text-xs font-bold outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all text-gray-800 placeholder:text-gray-300"
                   />
                 </div>
               </div>
@@ -596,12 +775,13 @@ export default function CouponsTab() {
                           <div className="space-y-1">
                             {/* CODE & COPY */}
                             <button 
+                              type="button"
                               onClick={() => copyToClipboard(coupon.code)}
                               className="text-sm font-mono font-black text-gray-950 hover:text-brand-primary flex items-center gap-1.5"
                             >
                               <span>{coupon.code}</span>
                               {copiedCode === coupon.code ? (
-                                <span className="text-[8px] px-1 bg-emerald-100 text-emerald-800 rounded">কপিড!</span>
+                                <span className="text-[8px] px-1 bg-emerald-100 text-emerald-800 rounded font-black">কপিড!</span>
                               ) : (
                                 <Copy size={11} className="text-gray-400" />
                               )}
@@ -626,44 +806,114 @@ export default function CouponsTab() {
                           </div>
 
                           {/* Action Buttons */}
-                          <div className="flex items-center gap-1 shrink-0">
-                            {/* Instant Copy Smart Formatted text */}
+                          <div className="flex items-center gap-1.5 shrink-0 justify-end max-w-[170px] relative">
+                            {/* Send options dropdown */}
+                            <div className="relative inline-block text-left">
+                              <button
+                                type="button"
+                                onClick={() => setOpenSendMenuCode(openSendMenuCode === coupon.code ? null : coupon.code)}
+                                className={`p-1.5 px-2 rounded-lg text-[9px] font-black flex items-center gap-1 cursor-pointer transition-all ${
+                                  openSendMenuCode === coupon.code 
+                                    ? 'bg-brand-primary text-white' 
+                                    : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-100'
+                                }`}
+                                title="গ্রাহককে কুপন পাঠান"
+                              >
+                                <Send size={10} className="shrink-0" />
+                                <span>Send</span>
+                              </button>
+
+                              {openSendMenuCode === coupon.code && (
+                                <>
+                                  <div className="fixed inset-0 z-40 bg-transparent" onClick={(e) => { e.stopPropagation(); setOpenSendMenuCode(null); }} />
+                                  <div className="absolute right-0 mt-1.5 w-48 bg-white border border-gray-150 rounded-2xl shadow-xl z-50 py-1.5 overflow-hidden text-left divide-y divide-gray-50">
+                                    {/* Option 1: WhatsApp */}
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleWhatsAppSend(coupon);
+                                        setOpenSendMenuCode(null);
+                                      }}
+                                      className="w-full px-3.5 py-2 text-[10px] font-black text-gray-700 hover:bg-emerald-50 hover:text-emerald-850 flex items-center gap-2 transition-all cursor-pointer text-left"
+                                    >
+                                      <MessageCircle size={13} className="text-emerald-550 shrink-0" />
+                                      <span>WhatsApp-এ পাঠান</span>
+                                    </button>
+
+                                    {/* Option 2: Email */}
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleEmailSend(coupon);
+                                        setOpenSendMenuCode(null);
+                                      }}
+                                      className="w-full px-3.5 py-2 text-[10px] font-black text-gray-700 hover:bg-blue-550 hover:text-white flex items-center gap-2 transition-all cursor-pointer text-left"
+                                    >
+                                      <Mail size={13} className="text-blue-500 shrink-0 hover:text-white" />
+                                      <span>ইমেইলে পাঠান</span>
+                                    </button>
+
+                                    {/* Option 3: Copy Message */}
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleCopyShareMessage(coupon);
+                                        setOpenSendMenuCode(null);
+                                      }}
+                                      className="w-full px-3.5 py-2 text-[10px] font-black text-gray-700 hover:bg-purple-550 hover:text-white flex items-center gap-2 transition-all cursor-pointer text-left"
+                                    >
+                                      <Share2 size={13} className="text-purple-500 shrink-0 hover:text-white" />
+                                      <span>{copiedShareIndex === coupon.code ? 'মেসেজ কপিড!' : 'কুপন মেসেজ কপি'}</span>
+                                    </button>
+                                  </div>
+                                </>
+                              )}
+                            </div>
+
+                            {/* Edit Coupon */}
                             <button
-                              onClick={() => handleCopyShareMessage(coupon)}
-                              className={`p-2 rounded-xl border transition-all flex items-center gap-1 ${
-                                copiedShareIndex === coupon.code 
-                                  ? 'bg-emerald-500 border-emerald-600 text-white' 
-                                  : 'bg-slate-50 border-gray-200 text-gray-650 hover:bg-slate-100'
-                              }`}
-                              title="কপি মেসেজ শেয়ার"
+                              type="button"
+                              onClick={() => handleOpenEditModal(coupon)}
+                              className="p-1.5 px-2 bg-slate-50 text-slate-700 hover:bg-slate-100 border border-gray-250 rounded-lg text-[9px] font-bold flex items-center gap-1 transition-all"
+                              title="কুপন এডিট করুন"
                             >
-                              <Share2 size={13} />
-                              <span className="text-[9px] font-extrabold">{copiedShareIndex === coupon.code ? 'সেন্ড রেডি' : 'শেয়ার তথ্য'}</span>
+                              <Edit2 size={10} className="text-slate-500 shrink-0" />
+                              <span>Edit</span>
                             </button>
 
                             {/* Delete Button */}
                             <button
+                              type="button"
                               onClick={() => handleDeleteCoupon(coupon.code)}
-                              className="p-2 text-rose-500 hover:bg-rose-50 border border-transparent hover:border-rose-100 rounded-xl transition-all ml-1"
+                              className="p-1.5 text-rose-500 hover:bg-rose-50 border border-transparent hover:border-rose-100 rounded-lg transition-all"
                               title="কুপন ডিলেট"
                             >
-                              <Trash2 size={13} />
+                              <Trash2 size={11} />
                             </button>
                           </div>
                         </div>
 
                         {/* Customer Meta Details */}
-                        <div className="grid grid-cols-2 gap-3 pt-2.5 mt-2 border-t border-slate-100 text-[10px] text-gray-600 font-bold uppercase">
+                        <div className="grid grid-cols-2 gap-3 pt-2.5 mt-2 border-t border-slate-100 text-[10px] text-gray-650 font-bold uppercase font-sans">
                           <div className="space-y-1">
                             <span className="text-[8px] text-gray-400 font-black block tracking-wider">CUSTOMER</span>
-                            <div className="flex items-center gap-1 text-gray-800">
-                              <User size={11} className="text-teal-600" />
+                            <div className="flex items-center gap-1 text-slate-800 font-bold normal-case">
+                              <User size={11} className="text-teal-600 shrink-0" />
                               <span className="truncate">{coupon.customerName || 'N/A'}</span>
                             </div>
-                            <div className="flex items-center gap-1 text-gray-500 font-mono text-[9px]">
-                              <Phone size={10} className="text-teal-600" />
+                            <div className="flex items-center gap-1 text-gray-500 font-mono text-[9px] lowercase">
+                              <Phone size={10} className="text-teal-600 shrink-0" />
                               <span>{coupon.customerPhone || 'N/A'}</span>
                             </div>
+                            {coupon.customerEmail && (
+                              <div className="flex items-center gap-1 text-gray-400 font-mono text-[8.5px] truncate lowercase mt-0.5">
+                                <Mail size={10} className="text-teal-655 shrink-0" />
+                                <span className="truncate">{coupon.customerEmail}</span>
+                              </div>
+                            )}
                           </div>
 
                           <div className="space-y-1">
@@ -671,24 +921,26 @@ export default function CouponsTab() {
                             <div className="flex items-start gap-1">
                               {isLocked ? (
                                 <>
-                                  <Lock size={10} className="text-amber-500 mt-0.5" />
-                                  <span className="text-amber-700 leading-tight block line-clamp-2">{coupon.productName}</span>
+                                  <Lock size={10} className="text-amber-500 mt-0.5 shrink-0" />
+                                  <span className="text-amber-800 leading-tight block line-clamp-2 normal-case">{coupon.productName}</span>
                                 </>
                               ) : (
-                                <span className="text-emerald-600">No Restrict ⭐</span>
+                                <span className="text-emerald-600 font-extrabold text-[9px] flex items-center gap-1">
+                                  ⭐ UNLOCKED
+                                </span>
                               )}
                             </div>
                           </div>
                         </div>
 
                         {/* Timeline */}
-                        <div className="mt-2.5 pt-2 border-t border-dashed border-gray-100 text-[8.5px] text-gray-400 flex justify-between items-center font-bold uppercase">
+                        <div className="mt-2.5 pt-2 border-t border-dashed border-gray-100 text-[8.5px] text-gray-400 flex justify-between items-center font-bold uppercase font-sans">
                           <span className="flex items-center gap-1">
                             <Calendar size={10} />
                             Expires: {formatTimestamp(coupon.expiresAt)}
                           </span>
                           {coupon.used && (
-                            <span className="text-rose-500 font-black">
+                            <span className="text-rose-550 font-black">
                               USED AT: {formatTimestamp(coupon.usedAt)}
                             </span>
                           )}
@@ -704,7 +956,7 @@ export default function CouponsTab() {
                     <thead>
                       <tr className="border-b border-gray-100/80 pb-3">
                         <th className="text-[10.5px] font-black text-gray-400 uppercase tracking-widest pb-3 pl-2">কুপন / স্ট্যাটাস</th>
-                        <th className="text-[10.5px] font-black text-gray-400 uppercase tracking-widest pb-3">গ্রাহকের প্রোফাইল</th>
+                        <th className="text-[10.5px] font-black text-gray-400 uppercase tracking-widest pb-3 pl-2">গ্রাহকের প্রোফাইল</th>
                         <th className="text-[10.5px] font-black text-gray-400 uppercase tracking-widest pb-3 border-l border-gray-100 pl-3">লকড প্রোডাক্ট</th>
                         <th className="text-[10.5px] font-black text-gray-400 uppercase tracking-widest pb-3">মেয়াদ ও বিবরণী</th>
                         <th className="text-[10.5px] font-black text-gray-400 uppercase tracking-widest pb-3 text-right pr-2">অ্যাকশন</th>
@@ -720,6 +972,7 @@ export default function CouponsTab() {
                             <td className="py-3.5 pl-2">
                               <div className="flex flex-col gap-1 align-start">
                                 <button 
+                                  type="button"
                                   onClick={() => copyToClipboard(coupon.code)}
                                   className="inline-flex items-center gap-1.5 font-mono font-black text-xs text-slate-900 hover:text-brand-primary active:scale-95 transition-all"
                                   title="কপি করতে ক্লিক করুন"
@@ -750,7 +1003,7 @@ export default function CouponsTab() {
                             </td>
 
                             {/* Customer Information detail block */}
-                            <td className="py-3.5 max-w-[170px]">
+                            <td className="py-3.5 max-w-[175px]">
                               <div className="space-y-1">
                                 {coupon.customerName ? (
                                   <div className="flex items-center gap-1.5 text-slate-800 font-extrabold text-[11px] uppercase tracking-tight">
@@ -766,6 +1019,12 @@ export default function CouponsTab() {
                                     <span className="select-all">{coupon.customerPhone}</span>
                                   </div>
                                 )}
+                                {coupon.customerEmail && (
+                                  <div className="flex items-center gap-1.5 text-gray-400 font-mono text-[9px] font-bold">
+                                    <Mail size={11} className="text-teal-600 shrink-0" />
+                                    <span className="select-all font-sans lowercase truncate block max-w-[150px]">{coupon.customerEmail}</span>
+                                  </div>
+                                )}
                               </div>
                             </td>
 
@@ -779,24 +1038,24 @@ export default function CouponsTab() {
                                   </div>
                                 ) : (
                                   <div className="text-[10px] text-emerald-600 font-extrabold uppercase tracking-tight flex items-center gap-1">
-                                    <Sparkles size={11} /> Unlocked
+                                    <Sparkles size={11} className="text-emerald-500 shrink-0" /> Unlocked
                                   </div>
                                 )}
                               </div>
                             </td>
 
                             {/* Validity timelines and uses logs */}
-                            <td className="py-3.5 text-[9px] text-gray-500 font-bold uppercase">
+                            <td className="py-3.5 text-[10px] text-gray-500 font-bold uppercase">
                               <div className="space-y-1">
                                 <div className="flex items-center gap-1 font-sans">
                                   <Calendar size={11} className="text-gray-400 shrink-0" />
                                   <span>মেয়াদ শেষ: {formatTimestamp(coupon.expiresAt)}</span>
                                 </div>
-                                <div className="text-[8px] text-gray-400 block font-sans">
+                                <div className="text-[8.5px] text-gray-400 block font-sans">
                                   {coupon.used ? (
-                                    <div className="text-rose-500 font-black uppercase">
+                                    <div className="text-rose-550 font-black uppercase">
                                       ব্যবহৃত হয়েছে: {formatTimestamp(coupon.usedAt)}
-                                      <span className="block text-[7px] text-gray-450 font-normal lowercase italic pl-3">
+                                      <span className="block text-[7.5px] text-gray-450 font-normal lowercase italic pl-3">
                                         by: {coupon.usedBy}
                                       </span>
                                     </div>
@@ -807,32 +1066,96 @@ export default function CouponsTab() {
                               </div>
                             </td>
 
-                            {/* Share & Delete Action blocks */}
+                            {/* Share, Edit & Delete Action blocks */}
                             <td className="py-3.5 text-right pr-2">
-                              <div className="flex items-center justify-end gap-1.5">
-                                {/* Format copy message share button */}
+                              <div className="flex items-center justify-end gap-1.5 ml-auto font-sans relative">
+                                {/* Custom dropdown Send button */}
+                                <div className="relative inline-block text-left">
+                                  <button
+                                    type="button"
+                                    onClick={() => setOpenSendMenuCode(openSendMenuCode === coupon.code ? null : coupon.code)}
+                                    className={`p-1.5 px-2.5 rounded-lg text-[9.5px] font-black flex items-center gap-1.5 transition-all cursor-pointer shadow-sm ${
+                                      openSendMenuCode === coupon.code 
+                                        ? 'bg-brand-primary text-white scale-98' 
+                                        : 'bg-emerald-50 text-emerald-800 border border-emerald-100 hover:bg-emerald-100/80'
+                                    }`}
+                                    title="গ্রাহককে পাঠান"
+                                  >
+                                    <Send size={11} className={openSendMenuCode === coupon.code ? "text-white" : "text-emerald-700"} />
+                                    <span>Send / পাঠান</span>
+                                  </button>
+
+                                  {openSendMenuCode === coupon.code && (
+                                    <>
+                                      <div className="fixed inset-0 z-40 bg-transparent" onClick={(e) => { e.stopPropagation(); setOpenSendMenuCode(null); }} />
+                                      <div className="absolute right-0 mt-1.5 w-52 bg-white border border-gray-155 rounded-2xl shadow-xl z-50 py-1 flex flex-col overflow-hidden text-left divide-y divide-gray-105">
+                                        {/* Option: WhatsApp Send */}
+                                        <button
+                                          type="button"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleWhatsAppSend(coupon);
+                                            setOpenSendMenuCode(null);
+                                          }}
+                                          className="w-full px-4 py-2.5 text-xs font-black text-gray-700 hover:bg-emerald-500 hover:text-white flex items-center gap-2.5 transition-all text-left cursor-pointer"
+                                        >
+                                          <MessageCircle size={13} className="text-emerald-500 hover:text-inherit shrink-0" />
+                                          <span>WhatsApp-এ পাঠান</span>
+                                        </button>
+
+                                        {/* Option: Email Send */}
+                                        <button
+                                          type="button"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleEmailSend(coupon);
+                                            setOpenSendMenuCode(null);
+                                          }}
+                                          className="w-full px-4 py-2.5 text-xs font-black text-gray-700 hover:bg-blue-500 hover:text-white flex items-center gap-2.5 transition-all text-left cursor-pointer"
+                                        >
+                                          <Mail size={13} className="text-blue-500 hover:text-inherit shrink-0" />
+                                          <span>ইমেইলে পাঠান</span>
+                                        </button>
+
+                                        {/* Option: Copy Share Template */}
+                                        <button
+                                          type="button"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleCopyShareMessage(coupon);
+                                            setOpenSendMenuCode(null);
+                                          }}
+                                          className="w-full px-4 py-2.5 text-xs font-black text-gray-700 hover:bg-purple-500 hover:text-white flex items-center gap-2.5 transition-all text-left cursor-pointer"
+                                        >
+                                          <Share2 size={13} className="text-purple-500 hover:text-inherit shrink-0" />
+                                          <span>
+                                            {copiedShareIndex === coupon.code ? 'Copied / কপিড!' : 'কুপন মেসেজ কপি'}
+                                          </span>
+                                        </button>
+                                      </div>
+                                    </>
+                                  )}
+                                </div>
+
+                                {/* Edit Coupon button */}
                                 <button
-                                  onClick={() => handleCopyShareMessage(coupon)}
-                                  className={`p-2 rounded-xl border transition-all flex items-center gap-1.5 ${
-                                    copiedShareIndex === coupon.code 
-                                      ? 'bg-emerald-550 border-emerald-650 text-white' 
-                                      : 'bg-slate-50 border-gray-200 text-gray-650 hover:bg-slate-100 hover:text-brand-primary'
-                                  }`}
-                                  title="গ্রাহককে পাঠাতে কুপন মেসেজ কপি করুন"
+                                  type="button"
+                                  onClick={() => handleOpenEditModal(coupon)}
+                                  className="p-1.5 px-2.5 bg-slate-50 text-slate-700 hover:bg-slate-100 border border-gray-200 rounded-lg text-[9.5px] font-black flex items-center gap-1 transition-all hover:text-brand-primary"
+                                  title="কুপন সম্পাদনা করুন"
                                 >
-                                  <Share2 size={13} />
-                                  <span className="text-[9.5px] font-black tracking-wide">
-                                    {copiedShareIndex === coupon.code ? 'মেসেজ কপিড!' : 'তথ্য কপি'}
-                                  </span>
+                                  <Edit2 size={11} className="text-slate-500 shrink-0" />
+                                  <span>Edit</span>
                                 </button>
 
                                 {/* Delete single coupon button */}
                                 <button
+                                  type="button"
                                   onClick={() => handleDeleteCoupon(coupon.code)}
-                                  className="p-2 text-gray-400 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-100 rounded-xl transition"
+                                  className="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-100 rounded-lg transition-all"
                                   title="কুপন ডিলেট"
                                 >
-                                  <Trash2 size={13} />
+                                  <Trash2 size={12} />
                                 </button>
                               </div>
                             </td>

@@ -1762,7 +1762,9 @@ function ProductModal({ isOpen, onClose, editingProduct }: { isOpen: boolean, on
     gallery: ['', '', ''],
     type: 'buy',
     prompt: '',
-    downloadUrl: ''
+    downloadUrl: '',
+    appVersion: '',
+    lastUpdated: ''
   });
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -1782,7 +1784,9 @@ function ProductModal({ isOpen, onClose, editingProduct }: { isOpen: boolean, on
         gallery: editingProduct.gallery || ['', '', ''],
         type: editingProduct.type || 'buy',
         prompt: editingProduct.prompt || '',
-        downloadUrl: editingProduct.downloadUrl || ''
+        downloadUrl: editingProduct.downloadUrl || '',
+        appVersion: editingProduct.appVersion || '',
+        lastUpdated: editingProduct.lastUpdated || ''
       });
     } else {
       setFormData({ 
@@ -1796,7 +1800,9 @@ function ProductModal({ isOpen, onClose, editingProduct }: { isOpen: boolean, on
         gallery: ['', '', ''],
         type: 'buy',
         prompt: '',
-        downloadUrl: ''
+        downloadUrl: '',
+        appVersion: '',
+        lastUpdated: ''
       });
     }
   }, [editingProduct]);
@@ -1805,9 +1811,22 @@ function ProductModal({ isOpen, onClose, editingProduct }: { isOpen: boolean, on
     e.preventDefault();
     setLoading(true);
     try {
+      const isAndroid = formData.category?.trim().toLowerCase() === 'android software';
+      let autoLastUpdated = formData.lastUpdated;
+
+      if (isAndroid && formData.appVersion) {
+        const oldVersion = editingProduct?.appVersion || '';
+        if (formData.appVersion !== oldVersion || !formData.lastUpdated) {
+          const today = new Date();
+          const formattedDate = today.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+          autoLastUpdated = formattedDate;
+        }
+      }
+
       // Filter out empty gallery images
       const cleanedData = {
         ...formData,
+        lastUpdated: autoLastUpdated,
         gallery: formData.gallery.filter(url => url.trim() !== '')
       };
 
@@ -1929,6 +1948,31 @@ function ProductModal({ isOpen, onClose, editingProduct }: { isOpen: boolean, on
                         ))}
                       </select>
                     </div>
+
+                    {(formData.category?.trim().toLowerCase() === 'android software' || formData.category?.trim().toLowerCase() === 'android_software') && (
+                      <div className="p-5 bg-emerald-50 rounded-2xl border border-emerald-100 space-y-3">
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-black text-emerald-700 uppercase tracking-widest pl-1 flex items-center gap-1.5">
+                            <Sparkles size={12} className="text-emerald-500 animate-spin-slow" /> App Version (অ্যাপ সংস্করণ)
+                          </label>
+                          <input 
+                            value={formData.appVersion || ''} 
+                            onChange={(e) => setFormData({...formData, appVersion: e.target.value})} 
+                            placeholder="e.g. v2.1.4, v4.5 Premium (Latest)" 
+                            className="w-full bg-white border border-gray-100 rounded-xl py-4 px-6 text-xs font-black uppercase outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all" 
+                          />
+                        </div>
+                        {formData.appVersion && (
+                          <div className="text-[9px] text-emerald-700 font-extrabold uppercase tracking-wider pl-1 flex items-center gap-1.5 mt-2 bg-emerald-100/40 p-2.5 rounded-lg border border-emerald-100/50">
+                            <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-ping" />
+                            <span>Last Updated (স্বয়ংক্রিয় আপডেট সময়):</span>
+                            <span className="text-gray-600 font-black">
+                              {formData.lastUpdated || 'Will auto-generate on save'}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                     {formData.type !== 'prompt' && (
                       <>

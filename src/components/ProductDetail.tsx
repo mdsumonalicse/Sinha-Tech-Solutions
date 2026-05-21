@@ -274,6 +274,32 @@ export default function ProductDetail() {
               <span className="text-[9px] lg:text-[10px] font-black text-gray-400 uppercase tracking-widest">Verified Assets</span>
             </div>
 
+            {isAndroidSoftware && product.appVersion && (
+              <div className="mb-6 bg-gradient-to-r from-emerald-550/10 via-emerald-550/5 to-transparent p-4 rounded-3xl border border-emerald-500/10 flex items-center gap-4 shadow-sm">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-500 text-white flex items-center justify-center shadow-lg shadow-emerald-500/20 shrink-0">
+                  <Sparkles size={24} className="animate-pulse" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-[10px] font-black text-emerald-800 bg-emerald-100/50 px-2.5 py-1 rounded-full uppercase tracking-wider flex items-center gap-1.5 border border-emerald-200">
+                      <span className="relative flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-505"></span>
+                      </span>
+                      LATEST APK VERSION: {product.appVersion}
+                    </span>
+                    <span className="text-[9px] font-bold text-gray-500 bg-gray-100/60 px-2 py-1 rounded-full uppercase tracking-wider border border-gray-200">
+                      SECURE & TESTED
+                    </span>
+                  </div>
+                  <p className="text-[11px] font-black text-gray-500 mt-1 uppercase tracking-tight flex items-center gap-1.5">
+                    <span>🔄 AUTO-UPDATED:</span>
+                    <span className="text-emerald-600 font-extrabold">{product.lastUpdated || 'RECENTLY'}</span>
+                  </p>
+                </div>
+              </div>
+            )}
+
             {product.type === 'both' && (
               <div className="bg-gray-50/80 p-1.5 rounded-2xl flex gap-2 mb-6 border border-gray-100 shadow-inner">
                 <button

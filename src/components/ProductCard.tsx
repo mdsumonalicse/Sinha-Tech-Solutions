@@ -73,6 +73,28 @@ export default function ProductCard({ product }: ProductCardProps) {
         <p className="text-[8px] sm:text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1.5 sm:mb-3">
           {product.category}
         </p>
+
+        {isAndroidSoftware && product.appVersion && (
+          <div className="flex flex-col gap-1 mb-2 sm:mb-3.5 bg-emerald-500/5 p-2 sm:p-2.5 rounded-xl border border-emerald-500/10">
+            <div className="flex items-center gap-1.5 justify-between">
+              <span className="text-[9px] font-black text-emerald-800 uppercase tracking-tight flex items-center gap-1">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                Version: {product.appVersion}
+              </span>
+              <span className="text-[8px] font-black uppercase text-emerald-600 tracking-wider bg-emerald-100/60 px-1.5 py-0.5 rounded-md">
+                Latest
+              </span>
+            </div>
+            {product.lastUpdated && (
+              <p className="text-[8px] text-gray-400 font-bold uppercase tracking-tight leading-none mt-0.5">
+                Updated: {product.lastUpdated}
+              </p>
+            )}
+          </div>
+        )}
         
         <div className="mt-auto pt-2 sm:pt-3 border-t border-gray-50">
           {product.type !== 'prompt' && (
