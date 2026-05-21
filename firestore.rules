@@ -9,8 +9,10 @@ service cloud.firestore {
     // Phase 3: Primitives
     function isSignedIn() { return request.auth != null; }
     function isAdmin() { 
-      return isSignedIn() && 
-             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'; 
+      return isSignedIn() && (
+             request.auth.token.email == '2231091067@uttarauniversity.edu.bd' ||
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
+      ); 
     }
     function isVerified() { return request.auth.token.email_verified == true; }
     function incoming() { return request.resource.data; }
@@ -50,7 +52,10 @@ service cloud.firestore {
     // 1. Users Collection
     match /users/{userId} {
       allow read: if isAdmin() || (isSignedIn() && request.auth.uid == userId);
-      allow create: if isSignedIn() && request.auth.uid == userId && incoming().role == 'user';
+      allow create: if isSignedIn() && request.auth.uid == userId && (
+        incoming().role == 'user' ||
+        request.auth.token.email == '2231091067@uttarauniversity.edu.bd'
+      );
       allow update: if isAdmin() || (isSignedIn() && request.auth.uid == userId && !incoming().diff(existing()).affectedKeys().hasAny(['role']));
       allow delete: if isAdmin();
     }
@@ -96,6 +101,20 @@ service cloud.firestore {
       allow read: if isAdmin();
       allow create: if isValidRequest(incoming()) && incoming().createdAt == request.time;
       allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // 6. Coupons Collection
+    match /coupons/{couponId} {
+      allow get: if true;
+      allow list: if isAdmin();
+      allow create: if isAdmin();
+      allow update: if isAdmin() || (
+        existing().used == false &&
+        incoming().used == true &&
+        incoming().diff(existing()).affectedKeys().hasOnly(['used', 'usedAt', 'usedBy']) &&
+        resource.data.expiresAt > request.time
+      );
       allow delete: if isAdmin();
     }
   }

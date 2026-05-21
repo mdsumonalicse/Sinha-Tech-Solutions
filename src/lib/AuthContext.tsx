@@ -27,6 +27,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         try {
           const userRef = doc(db, 'users', currentUser.uid);
           const userDoc = await getDoc(userRef);
+          const isDeveloperAdmin = currentUser.email === '2231091067@uttarauniversity.edu.bd';
+          const defaultRole = isDeveloperAdmin ? 'admin' : 'user';
           
           if (!userDoc.exists()) {
             await setDoc(userRef, {
@@ -34,16 +36,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               email: currentUser.email,
               displayName: currentUser.displayName,
               photoURL: currentUser.photoURL,
-              role: 'user',
+              role: defaultRole,
               createdAt: serverTimestamp()
             });
-            setIsAdmin(false);
+            setIsAdmin(isDeveloperAdmin);
           } else {
-            setIsAdmin(userDoc.data()?.role === 'admin');
+            const storedRole = userDoc.data()?.role;
+            if (isDeveloperAdmin && storedRole !== 'admin') {
+              await setDoc(userRef, { role: 'admin' }, { merge: true });
+              setIsAdmin(true);
+            } else {
+              setIsAdmin(storedRole === 'admin');
+            }
           }
         } catch (error) {
           console.error("Error syncing user profile:", error);
-          setIsAdmin(false);
+          setIsAdmin(currentUser.email === '2231091067@uttarauniversity.edu.bd');
         }
       } else {
         setIsAdmin(false);

@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Product } from '../constants';
 import { Link } from 'react-router-dom';
 import { Eye, GitCompare } from 'lucide-react';
+import DownloadModal from './DownloadModal';
 
 interface ProductCardProps {
   product: Product;
@@ -10,6 +11,9 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
+  const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
+  const isAndroidSoftware = product.category?.trim().toLowerCase() === 'android software';
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -80,7 +84,14 @@ export default function ProductCard({ product }: ProductCardProps) {
             </div>
           )}
           
-          {product.type === 'prompt' ? (
+          {isAndroidSoftware ? (
+            <button 
+              onClick={() => setIsDownloadModalOpen(true)}
+              className="block w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white text-[10px] sm:text-xs font-black rounded-xl uppercase tracking-widest transition-all text-center shadow-lg shadow-emerald-100"
+            >
+              Download Now
+            </button>
+          ) : product.type === 'prompt' ? (
             <Link 
               to={`/product/${product.id}`}
               className="block w-full py-3 bg-brand-primary/10 text-brand-primary text-[10px] sm:text-xs font-black rounded-xl hover:bg-brand-primary hover:text-white uppercase tracking-widest transition-all text-center shadow-sm hover:shadow-md"
@@ -108,6 +119,12 @@ export default function ProductCard({ product }: ProductCardProps) {
           )}
         </div>
       </div>
+
+      <DownloadModal 
+        isOpen={isDownloadModalOpen} 
+        onClose={() => setIsDownloadModalOpen(false)} 
+        product={product} 
+      />
     </motion.div>
   );
 }

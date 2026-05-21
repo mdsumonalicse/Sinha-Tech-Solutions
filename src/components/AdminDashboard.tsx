@@ -34,9 +34,12 @@ import {
   Sparkles,
   ArrowLeft,
   Image as ImageIcon,
-  Upload
+  Upload,
+  Download,
+  Ticket
 } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
+import CouponsTab from './CouponsTab';
 import { auth, db } from '../lib/firebase';
 import { signOut } from 'firebase/auth';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -215,6 +218,7 @@ export default function AdminDashboard() {
     { id: 'categories', label: 'Categories', icon: LayoutGrid },
     { id: 'requests', label: 'Requests', icon: MessageSquare },
     { id: 'users', label: 'User Management', icon: ShieldCheck },
+    { id: 'coupons', label: 'Download Coupons', icon: Ticket },
     { id: 'settings', label: 'Settings', icon: SettingsIcon },
   ];
 
@@ -440,6 +444,7 @@ export default function AdminDashboard() {
           {activeTab === 'requests' && <RequestsTab onSelect={setSelectedRequest} />}
           {activeTab === 'categories' && <CategoriesTab />}
           {activeTab === 'users' && <UsersTab />}
+          {activeTab === 'coupons' && <CouponsTab />}
           {activeTab === 'settings' && <SettingsTab />}
         </div>
       </main>
@@ -1872,8 +1877,10 @@ function ProductModal({ isOpen, onClose, editingProduct }: { isOpen: boolean, on
                         onChange={(e) => setFormData({...formData, type: e.target.value as any})} 
                         className="w-full bg-gray-50 border-none rounded-2xl py-5 px-8 text-xs font-black uppercase outline-none focus:ring-2 focus:ring-brand-primary/10 transition-all appearance-none cursor-pointer"
                       >
-                        <option value="buy">Buy License</option>
-                        <option value="download">Direct Download</option>
+                        <option value="buy">Buy/Order License (অর্ডার অপশন)</option>
+                        <option value="download">Coupon Download (কুপন দিয়ে ডাউনলোড)</option>
+                        <option value="both">Both (উভয় অপশনই থাকবে)</option>
+                        <option value="prompt">AI Prompt</option>
                       </select>
                     </div>
 
@@ -1890,15 +1897,21 @@ function ProductModal({ isOpen, onClose, editingProduct }: { isOpen: boolean, on
                       </div>
                     )}
 
-                    {formData.type === 'download' && (
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-2">Download URL</label>
+                    {(formData.type === 'download' || formData.type === 'both') && (
+                      <div className="space-y-1.5 bg-brand-primary/5 p-4 rounded-2xl border border-brand-primary/10">
+                        <label className="text-[10px] font-black text-brand-primary uppercase tracking-widest pl-2 flex items-center gap-1">
+                          <Download size={12} /> Download URL (Protected - Client needs Coupon Code)
+                        </label>
                         <input 
+                          required
                           value={formData.downloadUrl} 
                           onChange={(e) => setFormData({...formData, downloadUrl: e.target.value})} 
                           placeholder="https://..." 
-                          className="w-full bg-gray-50 border-none rounded-2xl py-5 px-8 text-xs font-black outline-none focus:ring-2 focus:ring-brand-primary/10 transition-all" 
+                          className="w-full bg-white border border-gray-100 rounded-xl py-4 px-6 text-xs font-black outline-none focus:ring-2 focus:ring-brand-primary/20 transition-all" 
                         />
+                        <span className="text-[8px] text-gray-400 font-bold uppercase tracking-tight block mt-1">
+                          * কুপন কোড কোডবক্স-এ মিলিয়ে গ্রাহক ভেরিফিকেশন করার পর তাকে এই লিংকে নিয়ে ডাউনলোড করানো হবে।
+                        </span>
                       </div>
                     )}
 

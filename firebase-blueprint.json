@@ -62,9 +62,31 @@
         "status": { "type": "string", "enum": ["pending", "contacted", "fulfilled", "cancelled"] },
         "createdAt": { "type": "string", "format": "date-time" }
       }
+    },
+    "Coupon": {
+      "title": "Coupon",
+      "description": "Download coupon code for Android software",
+      "type": "object",
+      "properties": {
+        "code": { "type": "string" },
+        "used": { "type": "boolean" },
+        "expiresAt": { "type": "string", "format": "date-time" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "usedAt": { "type": "string", "format": "date-time" },
+        "usedBy": { "type": "string" },
+        "productId": { "type": "string" },
+        "productName": { "type": "string" },
+        "customerName": { "type": "string" },
+        "customerPhone": { "type": "string" }
+      },
+      "required": ["code", "used", "expiresAt"]
     }
   },
   "firestore": {
+    "coupons": {
+      "schema": "Coupon",
+      "description": "Store download codes for Android Software"
+    },
     "products": {
       "schema": "Product",
       "description": "Store all digital products"

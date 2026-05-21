@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import OrderModal from './OrderModal';
 import ProductCard from './ProductCard';
+import DownloadModal from './DownloadModal';
 
 export default function ProductDetail() {
   const { productId } = useParams();
@@ -29,8 +30,12 @@ export default function ProductDetail() {
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
+  const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [shared, setShared] = useState(false);
+  const [activeActionTab, setActiveActionTab] = useState<'order' | 'download'>('order');
+
+  const isAndroidSoftware = product?.category?.trim().toLowerCase() === 'android software';
 
   const copyToClipboard = async (text: string) => {
     try {
@@ -110,6 +115,12 @@ export default function ProductDetail() {
           const currentProduct = { id: docSnap.id, ...data };
           setProduct(currentProduct);
           setSelectedImage(data.image);
+          
+          if (data.type === 'download') {
+            setActiveActionTab('download');
+          } else {
+            setActiveActionTab('order');
+          }
 
           // Fetch recommended items from same category
           if (data.category) {
@@ -263,12 +274,62 @@ export default function ProductDetail() {
               <span className="text-[9px] lg:text-[10px] font-black text-gray-400 uppercase tracking-widest">Verified Assets</span>
             </div>
 
+            {product.type === 'both' && (
+              <div className="bg-gray-50/80 p-1.5 rounded-2xl flex gap-2 mb-6 border border-gray-100 shadow-inner">
+                <button
+                  type="button"
+                  onClick={() => setActiveActionTab('order')}
+                  className={`flex-1 py-3 text-center rounded-xl text-[10px] lg:text-xs font-black uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-1.5 ${
+                    activeActionTab === 'order'
+                      ? 'bg-white text-gray-950 shadow-sm font-black border border-gray-100'
+                      : 'text-gray-400 hover:text-gray-850 font-bold'
+                  }`}
+                >
+                  <CreditCard size={14} /> License Order (অর্ডার করুন)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveActionTab('download')}
+                  className={`flex-1 py-3 text-center rounded-xl text-[10px] lg:text-xs font-black uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-1.5 ${
+                    activeActionTab === 'download'
+                      ? 'bg-brand-primary text-white shadow-lg shadow-brand-primary/20 font-black'
+                      : 'text-gray-400 hover:text-gray-850 font-bold'
+                  }`}
+                >
+                  <Download size={14} /> Link Download (ডাউনলোড করুন)
+                </button>
+              </div>
+            )}
+
             {product.type !== 'prompt' && (
-              <div className="flex items-center gap-4 mb-8 lg:mb-10">
-                <span className="text-3xl lg:text-5xl font-black text-brand-primary tracking-tighter">৳{product.price.toLocaleString()}</span>
-                {product.oldPrice && (
-                  <span className="text-lg lg:text-2xl text-gray-300 line-through font-bold">৳{product.oldPrice.toLocaleString()}</span>
-                )}
+              <div className="flex flex-col gap-1 mb-6 lg:mb-8 bg-gray-50/50 p-6 rounded-[2.5rem] border border-gray-100/60 shadow-inner">
+                <div className="flex items-baseline gap-4">
+                  {activeActionTab === 'order' ? (
+                    <>
+                      <span className="text-3xl lg:text-5xl font-black text-brand-primary tracking-tighter">৳{product.price.toLocaleString()}</span>
+                      {product.oldPrice && (
+                        <span className="text-lg lg:text-2xl text-gray-300 line-through font-bold">৳{product.oldPrice.toLocaleString()}</span>
+                      )}
+                      <span className="text-[9px] font-black text-emerald-500 uppercase tracking-wider bg-emerald-50 px-2 py-1 rounded-md border border-emerald-100 self-center">
+                        লাইসেন্স মূল্য
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-3xl lg:text-5xl font-black text-brand-primary tracking-tighter">৳১০০</span>
+                      <span className="text-lg lg:text-2xl text-gray-300 line-through font-bold">৳২৫০</span>
+                      <span className="text-[9px] font-black text-purple-500 uppercase tracking-wider bg-purple-50 px-2 py-1 rounded-md border border-purple-100 self-center">
+                        কুপন মূল্য
+                      </span>
+                    </>
+                  )}
+                </div>
+                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-1.5 flex items-center gap-1.5">
+                  <Sparkles size={12} className="text-brand-primary shrink-0" />
+                  {activeActionTab === 'order' 
+                    ? 'পূর্ণাঙ্গ অফিসিয়াল লাইসেন্স কী ও ইনস্টলেশন সাপোর্ট সহ' 
+                    : 'বিকাশ/নগদে ১০০৳ কুপন সংগ্রহ করে সিকিউর ডাউনলোড করুন'}
+                </p>
               </div>
             )}
 
@@ -318,30 +379,42 @@ export default function ProductDetail() {
             <div className="flex flex-col gap-3 lg:gap-4 mt-auto">
               {product.type === 'prompt' ? (
                 <button 
+                  type="button"
                   onClick={copyPrompt}
                   className="w-full bg-brand-primary text-white h-14 lg:h-16 rounded-xl lg:rounded-2xl font-black text-[10px] lg:text-xs uppercase tracking-[0.2em] shadow-xl shadow-brand-primary/20 hover:bg-opacity-90 hover:scale-[1.01] active:scale-95 transition-all flex items-center justify-center gap-3"
                 >
                   {copied ? 'Copied to Matrix' : 'Copy AI Prompt'} <Copy size={18} className="hidden sm:block" />
                 </button>
-              ) : product.type === 'download' ? (
-                <a 
-                  href={product.downloadUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="w-full bg-emerald-500 text-white h-14 lg:h-16 rounded-xl lg:rounded-2xl font-black text-[10px] lg:text-xs uppercase tracking-[0.2em] shadow-xl shadow-emerald-100 hover:bg-emerald-600 hover:scale-[1.01] active:scale-95 transition-all flex items-center justify-center gap-3"
-                >
-                  Download Asset <Download size={18} className="hidden sm:block" />
-                </a>
+              ) : activeActionTab === 'download' ? (
+                <div className="space-y-4">
+                  <button 
+                    type="button"
+                    onClick={() => setIsDownloadModalOpen(true)}
+                    className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white h-14 lg:h-16 rounded-xl lg:rounded-2xl font-black text-[10px] lg:text-xs uppercase tracking-[0.2em] shadow-xl shadow-emerald-100/40 transition-all flex items-center justify-center gap-3 hover:scale-[1.01] active:scale-95"
+                  >
+                    Verify Coupon to Download <Download size={18} />
+                  </button>
+
+                  <div className="bg-gradient-to-br from-[#fcfdff] to-[#f4f7fc] p-5 sm:p-6 rounded-[2rem] border border-blue-50/70 space-y-3 shadow-inner">
+                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider leading-relaxed">
+                      * এই সফটওয়্যারটি ডাউনলোড করার জন্য একটি ওয়ান-টাইম <span className="text-brand-primary font-black">ডাউনলোড কুপন কোড (Coupon Code)</span> প্রয়োজন। কুপন কোডটি দিয়ে উপরের বাটনে ক্লিক করে ভেরিফাই করলেই আপনার ফাইলটি ডাউনলোড হবে।
+                    </p>
+                    <div className="flex items-center gap-2 text-[9px] font-black text-brand-primary uppercase tracking-widest bg-brand-primary/5 py-2 px-3.5 rounded-xl border border-brand-primary/10 w-fit">
+                      <Sparkles size={11} /> Coupon Price: ৳100 only
+                    </div>
+                  </div>
+                </div>
               ) : (
                 <>
                   <button 
+                    type="button"
                     onClick={() => setIsOrderModalOpen(true)}
                     className="w-full bg-gray-900 text-white h-14 lg:h-16 rounded-xl lg:rounded-2xl font-black text-[10px] lg:text-xs uppercase tracking-[0.2em] shadow-xl shadow-gray-200 hover:bg-black hover:scale-[1.01] active:scale-95 transition-all flex items-center justify-center gap-3"
                   >
                     Order Now <CreditCard size={18} className="hidden sm:block" />
                   </button>
                   <a 
-                    href={`https://wa.me/8801611065415?text=${encodeURIComponent(`Greetings, I am interested in purchasing the ${product.name} license for ৳${product.price.toLocaleString()}.`)}`}
+                    href={`https://wa.me/8801611065415?text=${encodeURIComponent(`Greetings, I am interested in purchasing the ${product.name} license for ৳${product.price ? product.price.toLocaleString() : '0'}.`)}`}
                     target="_blank"
                     rel="noreferrer"
                     className="w-full bg-[#24CC63] text-white h-14 lg:h-16 rounded-xl lg:rounded-2xl font-black text-[10px] lg:text-xs uppercase tracking-[0.2em] shadow-xl shadow-green-100 hover:bg-[#20b859] hover:scale-[1.01] active:scale-95 transition-all flex items-center justify-center gap-3"
@@ -352,6 +425,7 @@ export default function ProductDetail() {
               )}
               
               <button 
+                type="button"
                 onClick={shareProduct}
                 className={`w-full h-14 lg:h-16 rounded-xl lg:rounded-2xl font-black text-[10px] lg:text-xs uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 border ${shared ? 'bg-emerald-500 text-white border-emerald-500 shadow-xl shadow-emerald-100' : 'bg-gray-50 text-gray-400 hover:text-gray-900 border-gray-100'}`}
               >
@@ -363,6 +437,12 @@ export default function ProductDetail() {
             <OrderModal 
               isOpen={isOrderModalOpen} 
               onClose={() => setIsOrderModalOpen(false)} 
+              product={product} 
+            />
+
+            <DownloadModal 
+              isOpen={isDownloadModalOpen} 
+              onClose={() => setIsDownloadModalOpen(false)} 
               product={product} 
             />
 
